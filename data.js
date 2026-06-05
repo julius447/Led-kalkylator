@@ -28,11 +28,26 @@ window.AMPY_LED_DATA = {
     SE3: 1.65,
     SE4: 1.85,
     nationellt_default: 1.50,
+    min: 0.80,
+    max: 3.50,
     enhet: "kr/kWh inkl. moms",
     datum: "2026 (verifierad 2026-06-05)",
     kalla: "Skatteverket; Nord Pool/elpriser24.se; Ellevio",
     not: "Konservativa uppskattningar — justera mot din egen faktura. Elnätsavgiften är största osäkerheten; ett dyrare nätbolag + vinterpris kan trycka SE4 över 2,40 kr/kWh."
   },
+
+  /* --- Segment-konfiguration: affärsregler bor i data, ej i motorn ----------- */
+  segments: {
+    privat:  { betalar_installation: false, visa_co2: false },
+    foretag: { betalar_installation: true,  visa_co2: true },
+    brf:     { betalar_installation: true,  visa_co2: true }
+  },
+
+  /* --- Gränsvärden (motorn/renderaren clampar mot dessa) --------------------- */
+  limits: { antal_max: 100000 },
+
+  /* --- Lead-endpoint (sätts vid Bricks-transplant; mailto-fallback för embeds) */
+  lead: { endpoint: null, fallback_mailto: "leads@ampy.se" },
 
   /* --- Watt-tabell: gammal typ → W_gammal, W_LED. kostnad_id → led_kostnad ----
      Privat per ljuskälla. Företag/BRF-kärnfallet modelleras som en STANDARD
@@ -82,7 +97,7 @@ window.AMPY_LED_DATA = {
   avdrag_copy: {
     privat:  "LED-byte ger inget skatteavdrag: grön teknik gäller solceller, batteri och laddbox – inte belysning – och lampbyte ger inte rotavdrag. Räkna med 0 kr i avdrag.",
     foretag: "Belysning är en avdragsgill driftskostnad – den minskar skattepliktig vinst (inte en rabatt på priset). Stäm av med din redovisning.",
-    brf:     "Inget statligt stöd antas (Boverkets energistöd är stängt sedan 2021). Lägre elkostnad sänker ändå föreningens driftskostnad och avgiftstryck."
+    brf:     "Lägre elkostnad sänker föreningens driftskostnad direkt – utrymme att hålla nere avgiftshöjningar. Inget statligt stöd räknas in (Boverkets energistöd är stängt sedan 2021), så siffran står på egna ben."
   },
 
   /* --- Lysrörsutfasningens fakta (Meta-/copy-krok, daterade källor) ---------- */
@@ -100,20 +115,23 @@ window.AMPY_LED_DATA = {
       rubrik: "Så mycket sparar du på att byta till LED",
       framing: "Spara på din kvarvarande halogen och spots.",
       cta_text: "Vill du ha hjälp av en behörig elektriker?",
+      cta_assurance: "Vi matchar dig med en behörig elektriker — kostnadsfritt.",
       cta_typ: "hjalp", visa_co2: false
     },
     foretag: {
       antal: 25, typ_id: "t8_arm", kontext: "Kontor",
       rubrik: "Så mycket lägre driftskostnad med LED",
-      framing: "Era lysrör är förbjudna sedan 2023. Räkna vad bytet sparar.",
+      framing: "Nya lysrör säljs inte längre (EU-förbud sedan 2023) — varje trasigt rör tvingar fram ett byte ändå. Räkna vad det sparar att byta nu.",
       cta_text: "Boka kostnadsfri belysningsgenomgång",
+      cta_assurance: "Kostnadsfritt och utan förpliktelse · svar inom 1 arbetsdag · utförs av behörig elektriker",
       cta_typ: "offert", visa_co2: true
     },
     brf: {
       antal: 60, typ_id: "t8_arm", kontext: "BRF trapphus — alltid på",
       rubrik: "Så mycket kan föreningen spara med LED",
-      framing: "Sänk driftskostnaden och avgiftstrycket — byt ut förbjudna lysrör.",
+      framing: "Sänk driftskostnaden och avgiftstrycket — byt ut föreningens gamla lysrör.",
       cta_text: "Få offert på LED-konvertering",
+      cta_assurance: "Kostnadsfritt och utan förpliktelse · svar inom 1 arbetsdag · utförs av behörig elektriker",
       cta_typ: "offert", visa_co2: true
     }
   },
