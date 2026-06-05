@@ -1,0 +1,315 @@
+/* =============================================================================
+   LED-kalkylatorn — STIL (ampy-design-system tokens, inga råa hex/px i UI)
+   Tokens definieras här för fristående embed; i Bricks ärvs de från temat.
+   ============================================================================= */
+
+:root {
+  /* Färg — semantiska tokens (primitiver bara som referens) */
+  --action-primary: rgb(0, 169, 145);
+  --action-secondary: rgb(9, 11, 50);
+  --bg-primary: rgb(255, 255, 255);
+  --bg-surface: rgb(9, 11, 50);
+  --bg-subtle: rgb(244, 245, 248);
+  --text-primary: rgb(9, 11, 50);
+  --text-secondary: rgb(96, 100, 128);
+  --text-inverse: rgb(255, 255, 255);
+  --state-success: rgb(57, 194, 129);
+  --state-error: rgb(214, 69, 69);
+  --state-warning: rgb(214, 158, 46);
+  --border-default: rgb(223, 226, 234);
+  --border-focus: rgb(0, 169, 145);
+
+  /* Spacing-skala */
+  --spacing-xs: 0.5rem;
+  --spacing-sm: 0.75rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  --spacing-2xl: 3rem;
+
+  /* Radius & shadow */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.625rem;
+  --radius-lg: 1rem;
+  --radius-full: 999px;
+  --shadow-sm: 0 1px 2px rgba(9, 11, 50, 0.06);
+  --shadow-md: 0 4px 16px rgba(9, 11, 50, 0.10);
+  --shadow-lg: 0 12px 40px rgba(9, 11, 50, 0.16);
+
+  /* Fluid typskala (clamp — inga statiska storlekar) */
+  --fs-xs: clamp(1rem, calc(1rem + (1.2 - 1) * ((100vw - 320px) / 960)), 1.2rem);
+  --fs-sm: clamp(1.2rem, calc(1.2rem + (1.4 - 1.2) * ((100vw - 320px) / 960)), 1.4rem);
+  --fs-md: clamp(1.7rem, calc(1.7rem + (1.8 - 1.7) * ((100vw - 320px) / 960)), 1.8rem);
+  --fs-lg: clamp(1.8rem, calc(1.8rem + (2.8 - 1.8) * ((100vw - 320px) / 960)), 2.8rem);
+  --fs-xl: clamp(2rem, calc(2rem + (3.6 - 2) * ((100vw - 320px) / 960)), 3.6rem);
+  --fs-2xl: clamp(2.2rem, calc(2.2rem + (4.8 - 2.2) * ((100vw - 320px) / 960)), 4.8rem);
+  --fs-3xl: clamp(2.6rem, calc(2.6rem + (6 - 2.6) * ((100vw - 320px) / 960)), 6rem);
+  --fs-4xl: clamp(4rem, calc(4rem + (7.5 - 4) * ((100vw - 320px) / 960)), 7.5rem);
+
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --fw-bold: 700;
+
+  --motion-fast: 150ms;
+  --motion-normal: 300ms;
+}
+
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700&family=Outfit:wght@400;500;600&display=swap");
+
+*, *::before, *::after { box-sizing: border-box; }
+
+.ampy-led {
+  font-family: "Outfit", system-ui, sans-serif;
+  color: var(--text-primary);
+  background: var(--bg-primary);
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: var(--spacing-lg);
+  font-size: var(--fs-xs);
+  line-height: 1.5;
+}
+
+.ampy-led h1, .ampy-led h2, .ampy-led h3 {
+  font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+  margin: 0;
+}
+
+/* --- Segment-toggle ------------------------------------------------------- */
+.seg-toggle {
+  display: inline-flex;
+  gap: var(--spacing-xs);
+  background: var(--bg-subtle);
+  padding: var(--spacing-xs);
+  border-radius: var(--radius-full);
+  margin-bottom: var(--spacing-lg);
+  width: 100%;
+  max-width: 480px;
+}
+.seg-toggle button {
+  flex: 1;
+  border: 0;
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: "Plus Jakarta Sans", sans-serif;
+  font-weight: var(--fw-semibold);
+  font-size: var(--fs-xs);
+  padding: var(--spacing-xs) var(--spacing-md);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: background var(--motion-fast), color var(--motion-fast);
+}
+.seg-toggle button[aria-pressed="true"] {
+  background: var(--bg-surface);
+  color: var(--text-inverse);
+}
+.seg-toggle button:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
+}
+
+/* --- Layout: resultat + inputs ------------------------------------------- */
+.led-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-lg);
+  align-items: start;
+}
+@media (max-width: 760px) {
+  .led-grid { grid-template-columns: 1fr; }
+}
+
+/* --- Kort (ingen nästling) ------------------------------------------------ */
+.card {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+/* --- Hjälte-panel (mörk, dominant siffra) -------------------------------- */
+.hero {
+  background: var(--bg-surface);
+  color: var(--text-inverse);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-xl);
+  box-shadow: var(--shadow-md);
+  /* reserverad höjd så inget hoppar vid omräkning */
+  min-height: 320px;
+}
+.hero .framing {
+  font-size: var(--fs-xs);
+  color: var(--state-success);
+  font-weight: var(--fw-semibold);
+  margin-bottom: var(--spacing-sm);
+}
+.hero .label {
+  font-size: var(--fs-xs);
+  opacity: 0.8;
+  margin-bottom: var(--spacing-xs);
+}
+.hero .hero-number {
+  font-family: "Plus Jakarta Sans", sans-serif;
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-3xl);
+  line-height: 1.1;
+  color: var(--text-inverse);
+  letter-spacing: -0.02em;
+  transition: opacity var(--motion-fast);
+}
+.hero .hero-unit { font-size: var(--fs-md); opacity: 0.7; font-weight: var(--fw-medium); }
+
+/* Stödtrio */
+.trio {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-lg);
+  padding-top: var(--spacing-lg);
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+}
+.trio .stat .v {
+  font-family: "Plus Jakarta Sans", sans-serif;
+  font-weight: var(--fw-semibold);
+  font-size: var(--fs-sm);
+}
+.trio .stat .k { font-size: var(--fs-xs); opacity: 0.7; }
+
+/* --- Inputs --------------------------------------------------------------- */
+.field { margin-bottom: var(--spacing-md); }
+.field label {
+  display: block;
+  font-weight: var(--fw-medium);
+  font-size: var(--fs-xs);
+  margin-bottom: var(--spacing-xs);
+}
+.field select, .field input[type="number"] {
+  width: 100%;
+  font-family: "Outfit", sans-serif;
+  font-size: var(--fs-xs);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+.field select:focus-visible,
+.field input:focus-visible,
+.stepper input:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 1px;
+  border-color: var(--border-focus);
+}
+.field input[type="range"] { width: 100%; accent-color: var(--action-primary); }
+.range-val { font-weight: var(--fw-semibold); color: var(--action-primary); }
+
+/* Stepper (antal) */
+.stepper { display: flex; align-items: stretch; gap: var(--spacing-xs); }
+.stepper button {
+  width: 44px;
+  border: 1px solid var(--border-default);
+  background: var(--bg-subtle);
+  border-radius: var(--radius-md);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  cursor: pointer;
+  color: var(--text-primary);
+}
+.stepper input { text-align: center; }
+.stepper button:hover { opacity: 0.9; }
+.stepper button:active { opacity: 0.8; }
+
+/* --- Transparent breakdown ("Så har vi räknat") -------------------------- */
+.breakdown summary {
+  cursor: pointer;
+  font-weight: var(--fw-semibold);
+  font-size: var(--fs-xs);
+  padding: var(--spacing-sm) 0;
+}
+.formula {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  background: var(--bg-subtle);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md);
+  font-size: 0.95rem;
+  line-height: 1.7;
+  overflow-x: auto;
+}
+.formula .op { color: var(--text-secondary); }
+.formula .res { color: var(--action-primary); font-weight: var(--fw-bold); }
+.breakdown table { width: 100%; border-collapse: collapse; margin-top: var(--spacing-sm); }
+.breakdown td { padding: var(--spacing-xs) 0; border-bottom: 1px solid var(--border-default); font-size: var(--fs-xs); }
+.breakdown td:last-child { text-align: right; font-weight: var(--fw-medium); }
+
+/* --- Ärlig osäkerhet + avdragstext --------------------------------------- */
+.honesty {
+  font-size: var(--fs-xs);
+  color: var(--text-secondary);
+  background: var(--bg-subtle);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-sm) var(--spacing-md);
+  margin-top: var(--spacing-md);
+}
+.honesty strong { color: var(--text-primary); }
+
+/* --- CTA (EN primär per sektion) ----------------------------------------- */
+.cta-zone {
+  margin-top: var(--spacing-lg);
+  padding: var(--spacing-lg);
+  background: var(--bg-subtle);
+  border-radius: var(--radius-lg);
+  text-align: center;
+}
+.cta-zone h3 { font-size: var(--fs-sm); margin-bottom: var(--spacing-xs); }
+.cta-zone p { font-size: var(--fs-xs); color: var(--text-secondary); margin: 0 0 var(--spacing-md); }
+.btn-primary {
+  display: inline-block;
+  background: var(--action-primary);
+  color: var(--text-inverse);
+  font-family: "Plus Jakarta Sans", sans-serif;
+  font-weight: var(--fw-semibold);
+  font-size: var(--fs-xs);
+  padding: var(--spacing-sm) var(--spacing-xl);
+  border: 0;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  text-decoration: none;
+  transition: opacity var(--motion-fast);
+}
+.btn-primary:hover { opacity: 0.9; }
+.btn-primary:active { opacity: 0.8; }
+.btn-primary:focus-visible { outline: 2px solid var(--border-focus); outline-offset: 2px; }
+.btn-ghost {
+  background: transparent;
+  border: 0;
+  color: var(--action-secondary);
+  font-weight: var(--fw-medium);
+  font-size: var(--fs-xs);
+  cursor: pointer;
+  text-decoration: underline;
+  margin-top: var(--spacing-sm);
+}
+.cta-zone.outside { background: rgba(214, 158, 46, 0.10); }
+
+/* --- Delningskort --------------------------------------------------------- */
+.share-row { margin-top: var(--spacing-md); display: flex; gap: var(--spacing-sm); flex-wrap: wrap; align-items: center; }
+.share-quote {
+  font-size: var(--fs-xs);
+  font-style: italic;
+  color: var(--text-secondary);
+  flex: 1 1 240px;
+}
+
+.section-title {
+  font-size: var(--fs-md);
+  font-weight: var(--fw-semibold);
+  margin-bottom: var(--spacing-md);
+}
+.eyebrow {
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  color: var(--action-primary);
+  letter-spacing: 0.02em;
+  margin-bottom: var(--spacing-xs);
+}

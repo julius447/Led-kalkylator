@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LED-kalkylatorn — räkna din besparing | Ampy</title>
+  <meta name="description" content="Räkna ut hur mycket ditt företag, din BRF eller ditt hem sparar på att byta till LED. Full siffra gratis, transparent matematik." />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- data-sida styr embed-preset (belysning | inomhusbelysning | utomhusbelysning | spotlight | armaturer) -->
+  <div class="ampy-led" data-sida="belysning">
+
+    <!-- Segment-toggle: byter framing, defaults, CTA. Öppnar i Företag. -->
+    <div class="seg-toggle" role="group" aria-label="Välj segment">
+      <button data-seg="privat">Privatperson</button>
+      <button data-seg="foretag">Företag</button>
+      <button data-seg="brf">BRF</button>
+    </div>
+
+    <div class="led-grid">
+
+      <!-- VÄNSTER: Hjälte-resultat (dominant). Reserverad höjd → inget hoppar. -->
+      <section aria-live="polite">
+        <div class="hero">
+          <div class="framing" id="framing"></div>
+          <div class="label" id="heroLabel">Lägre driftskostnad ca</div>
+          <div class="hero-number" id="heroNumber">—</div>
+          <div class="trio">
+            <div class="stat"><div class="v" id="statKwh">—</div><div class="k">energi/år</div></div>
+            <div class="stat"><div class="v" id="statPayback">—</div><div class="k">payback</div></div>
+            <div class="stat"><div class="v" id="stat10ar">—</div><div class="k">på 10 år</div></div>
+          </div>
+          <div class="trio" id="co2Stat" style="display:none;border-top:0;padding-top:var(--spacing-md)">
+            <div class="stat"><div class="v" id="statCo2">—</div><div class="k">mindre CO₂/år · nordisk residualmix (ESG)</div></div>
+          </div>
+        </div>
+
+        <!-- CTA: värde först, lead som konsekvens. EN primär knapp. -->
+        <div class="cta-zone" id="ctaZone">
+          <h3 id="ctaTitle">Vill ni gå vidare?</h3>
+          <p id="ctaSub"></p>
+          <button class="btn-primary" id="ctaBtn">Boka kostnadsfri belysningsgenomgång</button>
+          <div class="share-row">
+            <span class="share-quote" id="shareQuote"></span>
+            <button class="btn-ghost" id="shareBtn">Dela din siffra ↗</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- HÖGER: Inputs (real-time omräkning) -->
+      <section class="card" aria-label="Dina värden">
+        <div class="eyebrow">Dina värden</div>
+        <h2 class="section-title">Justera så räknar vi direkt</h2>
+
+        <div class="field">
+          <label for="inTyp">Vad byter du från?</label>
+          <select id="inTyp"></select>
+        </div>
+
+        <div class="field">
+          <label for="inKontext">Var sitter belysningen?</label>
+          <select id="inKontext"></select>
+        </div>
+
+        <div class="field">
+          <label for="inAntal">Antal ljuskällor / armaturer</label>
+          <div class="stepper">
+            <button type="button" id="antalMinus" aria-label="Minska antal">−</button>
+            <input type="number" id="inAntal" min="0" inputmode="numeric" />
+            <button type="button" id="antalPlus" aria-label="Öka antal">+</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="inBrinntid">Brinntid: <span class="range-val" id="brinntidVal">—</span></label>
+          <input type="range" id="inBrinntid" min="0" max="24" step="0.5" />
+        </div>
+
+        <div class="field">
+          <label for="inElomrade">Elprisområde</label>
+          <select id="inElomrade">
+            <option value="SE1">SE1 — Luleå (norra)</option>
+            <option value="SE2">SE2 — Sundsvall</option>
+            <option value="SE3">SE3 — Stockholm</option>
+            <option value="SE4">SE4 — Malmö (södra)</option>
+          </select>
+        </div>
+
+        <!-- Transparent breakdown: "Så har vi räknat" (skannbar, ej textblob) -->
+        <details class="breakdown" open>
+          <summary>Så har vi räknat</summary>
+          <div class="formula" id="formula"></div>
+          <table><tbody id="breakdownRows"></tbody></table>
+        </details>
+
+        <!-- Ärlig osäkerhet + avdragstext (inga falska avdrag) -->
+        <div class="honesty">
+          <strong>Uppskattning baserad på dina värden.</strong>
+          <span id="avdragCopy"></span>
+          Elpriser och antaganden kan justeras ovan.
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+  <!-- 5-lagersarkitektur: data inlinad, ingen client-side fetch -->
+  <script src="data.js"></script>
+  <script src="engine.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
