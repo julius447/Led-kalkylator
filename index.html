@@ -4,21 +4,17 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>LED-kalkylatorn — räkna din besparing | Ampy</title>
-  <meta name="description" content="Räkna ut hur mycket ditt företag, din BRF eller ditt hem sparar på att byta till LED. Full siffra gratis, transparent matematik." />
+  <meta name="description" content="Räkna ut hur mycket din BRF, ditt företag eller ditt hem sänker driftskostnaden med LED. Full siffra gratis, transparent matematik." />
   <link rel="canonical" href="https://ampy.se/led-kalkylatorn/" />
 
-  <!-- Delningskort: länkar unfurlar med titel/bild i FB/LinkedIn/X -->
   <meta property="og:type" content="website" />
   <meta property="og:locale" content="sv_SE" />
   <meta property="og:site_name" content="Ampy" />
-  <meta property="og:title" content="Räkna er LED-besparing — kr/år, payback och 10-årsvärde" />
+  <meta property="og:title" content="Räkna er LED-besparing — sänkt driftskostnad per år" />
   <meta property="og:description" content="Nya lysrör säljs inte längre (EU-förbud 2023). Räkna transparent vad ett LED-byte sparar för er BRF, ert företag eller ditt hem. Full siffra gratis." />
   <meta property="og:url" content="https://ampy.se/led-kalkylatorn/" />
   <meta property="og:image" content="https://ampy.se/led-kalkylatorn/og.png" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Räkna er LED-besparing med Ampy" />
-  <meta name="twitter:description" content="Transparent LED-besparing för BRF, företag och hem. Full siffra gratis." />
-  <meta name="twitter:image" content="https://ampy.se/led-kalkylatorn/og.png" />
 
   <link rel="stylesheet" href="styles.css" />
 </head>
@@ -26,91 +22,43 @@
   <!-- data-sida styr embed-preset (belysning | inomhusbelysning | utomhusbelysning | spotlight | armaturer) -->
   <div class="ampy-led" data-sida="belysning">
 
-    <h1 class="sr-only">Din LED-besparing — räkna kr/år, payback och 10-årsvärde</h1>
-
-    <!-- Segment-toggle: byter framing, defaults, CTA. Öppnar i Företag. -->
-    <div class="seg-toggle" role="group" aria-label="Välj segment">
-      <button data-seg="privat">Privatperson</button>
-      <button data-seg="foretag">Företag</button>
-      <button data-seg="brf">BRF</button>
-    </div>
+    <h1 class="sr-only">Din LED-besparing — räkna sänkt driftskostnad per år</h1>
 
     <div class="led-grid">
 
-      <!-- VÄNSTER: Hjälte-resultat (dominant). Reserverad höjd → inget hoppar. -->
-      <section>
+      <!-- VÄNSTER: resultat + CTA -->
+      <section class="results">
         <div class="hero">
-          <div class="framing" id="framing"></div>
-          <!-- Bara resultatsiffrorna annonseras till skärmläsare, en gång per ändring -->
           <div id="resultLive" role="status" aria-live="polite" aria-atomic="true">
-            <div class="label" id="heroLabel">Lägre driftskostnad ca</div>
-            <div class="hero-number" id="heroNumber">—</div>
-            <div class="trio">
-              <div class="stat"><div class="v" id="statKwh">—</div><div class="k">energi/år</div></div>
-              <div class="stat"><div class="v" id="statPayback">—</div><div class="k">payback</div></div>
-              <div class="stat"><div class="v" id="stat10ar">—</div><div class="k">på 10 år</div></div>
-            </div>
-            <div class="co2-row is-hidden" id="co2Stat">
-              <span class="v" id="statCo2">—</span>
-              <span class="k">mindre CO₂/år · nordisk residualmix (ESG)</span>
+            <div class="hero-label" id="heroLabel">Sänkt driftskostnad per år</div>
+            <div class="hero-number" id="heroNumber">—<span class="hero-unit"> kr/år</span></div>
+            <div class="hero-stats">
+              <div class="stat-tile">
+                <div class="v" id="statKwh">—</div>
+                <div class="k" id="statKwhKey">energi per år</div>
+              </div>
+              <div class="stat-tile">
+                <div class="v" id="statB">—</div>
+                <div class="k" id="statBKey">—</div>
+              </div>
             </div>
           </div>
         </div>
 
-        <!-- CTA: värde först, lead som konsekvens. EN primär knapp per vy. -->
-        <div class="cta-zone" id="ctaZone">
-          <h2 class="cta-title" id="ctaTitle">Vill ni gå vidare?</h2>
-          <p id="ctaSub"></p>
-          <button class="btn-primary" id="ctaBtn">Boka kostnadsfri belysningsgenomgång</button>
-          <p class="cta-assurance" id="ctaAssurance"></p>
-
-          <!-- Lead-formulär: visas FÖRST efter klick, värdet syns hela tiden -->
-          <form class="lead-form is-hidden" id="leadForm" novalidate>
-            <div class="field">
-              <label for="leadNamn">Namn</label>
-              <input id="leadNamn" name="namn" type="text" autocomplete="name" required />
-            </div>
-            <div class="field is-hidden" id="leadForetagField">
-              <label for="leadForetag">Företag / förening</label>
-              <input id="leadForetag" name="foretag" type="text" autocomplete="organization" />
-            </div>
-            <div class="field">
-              <label for="leadEpost">E-post</label>
-              <input id="leadEpost" name="epost" type="email" autocomplete="email" required />
-            </div>
-            <div class="field">
-              <label for="leadTel">Telefon</label>
-              <input id="leadTel" name="telefon" type="tel" autocomplete="tel" />
-            </div>
-            <div class="field is-hidden" id="leadPostnrField">
-              <label for="leadPostnr">Postnummer</label>
-              <input id="leadPostnr" name="postnummer" type="text" inputmode="numeric" autocomplete="postal-code" />
-            </div>
-            <!-- Honeypot: dold för människor, fångar bottar -->
-            <div class="hp" aria-hidden="true">
-              <label>Lämna detta fält tomt
-                <input id="leadHp" name="company_url" type="text" tabindex="-1" autocomplete="off" />
-              </label>
-            </div>
-            <label class="consent">
-              <input id="leadConsent" type="checkbox" required />
-              <span>Jag samtycker till att Ampy kontaktar mig om LED-konvertering.</span>
-            </label>
-            <button class="btn-primary" type="submit" id="leadSubmit">Skicka</button>
-          </form>
-          <div class="lead-done is-hidden" id="leadDone" role="status"></div>
-
-          <div class="share-row">
-            <span class="share-quote" id="shareQuote"></span>
-            <button class="btn-ghost" id="shareBtn" type="button">Dela din siffra ↗</button>
-          </div>
-          <div class="share-card is-hidden" id="shareCard" aria-hidden="true"></div>
+        <div class="cta-card">
+          <button class="btn-primary" id="ctaBtn" type="button">Få offert på LED-konvertering</button>
         </div>
       </section>
 
-      <!-- HÖGER: Inputs (real-time omräkning) -->
-      <section class="card" aria-label="Dina värden">
-        <div class="eyebrow">Dina värden</div>
+      <!-- HÖGER: kontroller -->
+      <section class="card controls" aria-label="Justera värden">
+        <div class="seg-toggle" role="group" aria-label="Välj segment">
+          <button data-seg="brf" aria-pressed="true">BRF</button>
+          <button data-seg="foretag" aria-pressed="false">Företag</button>
+          <button data-seg="privat" aria-pressed="false">Privatperson</button>
+        </div>
+        <p class="seg-caption" id="segCaption">Vi räknar för föreningens gemensamma belysning.</p>
+
         <h2 class="section-title">Justera så räknar vi direkt</h2>
 
         <div class="field">
@@ -135,39 +83,35 @@
         <div class="field">
           <label for="inBrinntid">Brinntid: <span class="range-val" id="brinntidVal">—</span></label>
           <input type="range" id="inBrinntid" min="0" max="24" step="0.5" />
+          <div class="range-scale" aria-hidden="true"><span>0 h</span><span>24 h</span></div>
         </div>
 
         <div class="field">
-          <label for="inElomrade">Elprisområde (sätter förvalt pris)</label>
+          <label for="inElomrade">Elprisområde</label>
           <select id="inElomrade">
             <option value="SE1">SE1 — Luleå (norra)</option>
             <option value="SE2">SE2 — Sundsvall</option>
             <option value="SE3">SE3 — Stockholm</option>
             <option value="SE4">SE4 — Malmö (södra)</option>
           </select>
+          <div class="hint" id="elprisHint"></div>
         </div>
 
-        <div class="field">
-          <label for="inElpris">Ditt elpris (totalpris): <span class="range-val" id="elprisVal">—</span></label>
-          <input type="range" id="inElpris" min="0.8" max="3.5" step="0.05" />
-          <div class="hint">Sätt mot din egen faktura — elnätsavgiften är den största osäkerheten. Vinterpris i SE4 kan ligga över 2,40.</div>
-        </div>
+        <!-- Transparens + ärlighet (tre distinkta komponenter) -->
+        <div class="transparency-group">
+          <details class="breakdown" id="breakdown">
+            <summary>Så har vi räknat<span class="chev" aria-hidden="true">›</span></summary>
+            <div class="formula" id="formula"></div>
+            <table><tbody id="breakdownRows"></tbody></table>
+            <p class="avdrag" id="avdragCopy"></p>
+          </details>
 
-        <!-- Transparent breakdown: "Så har vi räknat" (skannbar, ej textblob) -->
-        <details class="breakdown" id="breakdown">
-          <summary>Så har vi räknat — visa formel och antaganden</summary>
-          <div class="formula" id="formula"></div>
-          <table><tbody id="breakdownRows"></tbody></table>
-        </details>
+          <p class="context is-hidden" id="lysrorContext"></p>
 
-        <!-- Lysrörsfakta (endast Företag/BRF) — daterad källa i title -->
-        <p class="context is-hidden" id="lysrorContext"></p>
-
-        <!-- Ärlig osäkerhet + avdragstext (inga falska avdrag) -->
-        <div class="honesty">
-          <strong>Uppskattning baserad på dina värden.</strong>
-          <span id="avdragCopy"></span>
-          Justera elpriset mot din egen faktura ovan — vi utgår från ett medvetet lågt totalpris, så din verkliga besparing blir högre, inte lägre.
+          <div class="honesty">
+            <strong>Försiktig uppskattning.</strong>
+            <span> Vi räknar med ett lågt elpris och konservativa antaganden, så att siffran håller — inte för att den ska imponera.</span>
+          </div>
         </div>
       </section>
 

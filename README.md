@@ -32,6 +32,18 @@ Verktyget **öppnar i Företag-läge** fristående; embed-preset (`data-sida`) s
 ## Ärlighet = moat (Del 6)
 Transparent matematik med användarens egna tal, synlig osäkerhet, justerbara antaganden, **inga falska avdrag**, CO2 endast Företag/BRF med angiven metod. Hjälte-siffra och payback härleds ur *samma* värde.
 
+## Vol.3 — total designomgörning (2026-06-06)
+En designdriven omgörning: research-agent + tre konkurrerande **kompletta designriktningar** + en designdirektör som valde och syntetiserade **en** sammanhängande spec ("Composed confidence" — Swiss restraint + varm röst + källad ärlighet). Full spec i `VOL3-SPEC.md`. Vad som ändrades mot vol.2:
+- **Segment-toggle** flyttad in i högerkortet (mindre), ordning **BRF → Företag → Privatperson**, öppnar på BRF. "Dina värden"-etiketten borttagen.
+- **Hjälte** = en stor siffra (sänkt driftskostnad kr/år, teal `kr/år`) + två små stat-tiles: energi/år och CO₂/år. Payback och 10-år borttagna. Grön framing-text borttagen. Grön accent-tab.
+- **Privat-doktrin-swap:** CO₂ visas aldrig för Privat — ersätts av **kr/månad**.
+- **Ren CTA-ruta:** bara en snygg knapp (segment-anpassad). All rubrik/dela/lead-form/assurance borttagen.
+- **Elpris-slidern borttagen** (blev "fucked"): priset styrs nu enbart av SE1–SE4.
+- **Utökad ljuskällelista** (27 st, researchade) i grupperade `<optgroup>` per segment; korrigerade brinntider (Privat 2h → 4h) och antal-defaults (Privat 15 / Företag 30 / BRF 80).
+- **Omdesignad transparens:** ren formel-rad, skannbar 6-radig "liggare", lysrörskrok som citat-callout, försiktig honesty-rad — enligt typografiska best practices.
+- **Hantverk:** strikt token-disciplin, tre typregister, ransonerad teal (5 platser), tabular-nums, en 700-vikt (hjälte-siffran), `<details>`-chevron, ≤300ms motion.
+- engine.test.js **27/27 gröna**; kostnad bor nu på varje ljuskälla; validatorn uppdaterad.
+
 ## Vol.2 — vad som tillkom (multi-agent-revision, 2026-06-05)
 13 expertlinser granskade vol.1; 11 must-ship-förbättringar byggdes (full plan i `VOL2-PLAN.md`):
 1. **Justerbart elpris** — kr/kWh-slider; området seedar ett medvetet lågt default, användaren drar mot sin egen faktura. Stänger dossierns största osäkerhet och gör hjälte-siffran till *deras* tal.
