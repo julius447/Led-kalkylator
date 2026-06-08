@@ -320,40 +320,6 @@
 .ampy-calc__evidence-caption { color: var(--on-surface-text-muted); font-size: var(--fs-xs); }
 .ampy-calc__evidence-caption strong { color: var(--text-inverse); font-weight: 600; }
 
-/* --- Payback-kurva -------------------------------------------------------- */
-.ampy-calc__chart-block { display: flex; flex-direction: column; gap: var(--spacing-sm); }
-.ampy-calc__chart {
-  width: 100%; aspect-ratio: 2.5 / 1; background: var(--on-surface-subtle-bg); border-radius: var(--radius-md);
-  position: relative; min-height: 30rem;
-  --be-top-h: 3.2rem; --be-axis-h: 4.4rem;
-  padding: var(--spacing-md);
-}
-@media (max-width: 560px) { .ampy-calc__chart { aspect-ratio: 1.45 / 1; min-height: 32rem; } }
-.ampy-calc__chart-inner { position: relative; width: 100%; height: 100%; display: flex; flex-direction: column; }
-.ampy-calc__chart-top { height: var(--be-top-h); position: relative; margin-bottom: 0.2rem; }
-.ampy-calc__chart-plot { flex: 1; min-height: 0; position: relative; }
-.ampy-calc__chart-plot svg { width: 100%; height: 100%; display: block; overflow: visible; }
-.ampy-calc__chart-axis { height: var(--be-axis-h); position: relative; margin-top: 0.2rem; }
-.ampy-calc__chart-corner { position: absolute; pointer-events: none; white-space: nowrap; font-family: var(--font-heading); line-height: 1.2; }
-.ampy-calc__chart-corner--end-value { top: 0; right: 0; font-family: var(--font-mono); font-weight: 700; font-size: clamp(1.5rem, 1.5rem + 0.2vw, 1.7rem); color: var(--chart-line-profit); }
-.ampy-calc__chart-corner--end-value.is-loss { color: var(--chart-line-loss); }
-.ampy-calc__chart-corner--today, .ampy-calc__chart-corner--end-axis { bottom: 0; color: var(--on-surface-text-muted); font-weight: 500; font-size: clamp(1.3rem, 1.3rem + 0.15vw, 1.5rem); }
-.ampy-calc__chart-corner--today { left: 0; }
-.ampy-calc__chart-corner--end-axis { right: 0; }
-.ampy-calc__be-marker {
-  position: absolute; top: 0; bottom: 0; left: clamp(8%, var(--be-x, 50%), 92%); transform: translateX(-50%);
-  --plot-top: calc(var(--be-top-h) + 0.2rem); --plot-bot: calc(var(--be-axis-h) + 0.2rem);
-  --plot-h: calc(100% - var(--plot-top) - var(--plot-bot)); pointer-events: none;
-}
-.ampy-calc__be-dot { position: absolute; top: calc(var(--plot-top) + var(--plot-h) * (1 - var(--be-y-frac, 0.5))); left: 50%; width: 1.2rem; height: 1.2rem; border-radius: var(--radius-full); background: var(--chart-line-profit); transform: translate(-50%, -50%); }
-.ampy-calc__be-line { position: absolute; top: calc(var(--plot-top) + var(--plot-h) * (1 - var(--be-y-frac, 0.5)) + 0.7rem); bottom: var(--plot-bot); left: 50%; border-left: 1px dashed rgba(255, 255, 255, 0.34); }
-.ampy-calc__be-label { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; }
-.ampy-calc__be-caption { font-family: var(--font-heading); font-size: 1.4rem; font-weight: 500; color: var(--on-surface-text); }
-.ampy-calc__be-time { font-family: var(--font-heading); font-size: 1.5rem; font-weight: 700; color: var(--chart-line-profit); }
-.ampy-calc__chart.is-no-be .ampy-calc__be-marker { display: none; }
-.ampy-calc__chart.is-no-payback .ampy-calc__chart-corner, .ampy-calc__chart.is-no-payback .ampy-calc__be-marker { display: none; }
-.ampy-calc__chart.is-be-early .ampy-calc__chart-corner--today { display: none; }
-
 /* --- Knappar / CTA / e-post ----------------------------------------------- */
 .ampy-calc__cta-stack { display: flex; flex-direction: column; gap: var(--spacing-md); }
 .ampy-calc__btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--spacing-xs); padding: var(--spacing-sm) var(--spacing-lg); border-radius: var(--radius-md); font-family: var(--font-heading); font-weight: 600; font-size: var(--fs-sm); min-height: 4.8rem; transition: opacity var(--motion-fast), background var(--motion-fast), box-shadow var(--motion-fast), transform var(--motion-fast); }
@@ -365,13 +331,6 @@
 .ampy-calc__btn--block { width: 100%; }
 .ampy-calc__btn--outline { background: transparent; color: var(--text-inverse); border: 0.15rem solid var(--on-surface-border-strong); }
 .ampy-calc__btn svg { width: 1.8rem; height: 1.8rem; }
-.ampy-calc__cta-secondary { padding-top: var(--spacing-sm); }
-.ampy-calc__email-row { display: flex; gap: var(--spacing-sm); flex-wrap: wrap; }
-.ampy-calc__card--surface .ampy-calc__input { flex: 1; min-width: 22rem; background: var(--bg-surface); color: var(--text-inverse); border-color: var(--on-surface-border-strong); }
-.ampy-calc__card--surface .ampy-calc__input::placeholder { color: var(--on-surface-text-faint); }
-.ampy-calc__btn-link { display: inline-flex; align-items: center; justify-content: center; gap: var(--spacing-xs); color: var(--on-surface-text-muted); font-family: var(--font-body); font-size: var(--fs-sm); font-weight: 500; padding: var(--spacing-xs) 0; }
-.ampy-calc__btn-link:hover { color: var(--text-inverse); text-decoration: none; }
-.ampy-calc__btn-link svg { width: 1.6rem; height: 1.6rem; }
 
 /* --- Så har vi räknat ----------------------------------------------------- */
 .ampy-calc__methodology { background: var(--bg-primary); border: 1px solid var(--border-default); border-radius: var(--radius-md); padding: var(--spacing-md) var(--spacing-lg); }
@@ -409,11 +368,32 @@
 .ampy-calc__lead-msg--err { background: rgba(214, 76, 76, 0.16); color: var(--text-inverse); border: 1px solid var(--state-error); }
 .ampy-calc__lead-optional { color: var(--on-surface-text-faint); font-weight: 400; }
 .ampy-calc__lead-consent { display: flex; align-items: flex-start; gap: var(--spacing-sm); font-size: var(--fs-xs); color: var(--on-surface-text-muted); line-height: 1.5; }
-.ampy-calc__lead-consent input { width: 1.8rem; height: 1.8rem; flex-shrink: 0; margin: 0; accent-color: var(--action-secondary); }
+/* Ritad kryssruta (appearance:none) — alltid synlig ram även där accent-color/
+   default-rutan är osynlig på mörk yta (iOS Safari <15.4, äldre Android WebView). */
+.ampy-calc__lead-consent input {
+  -webkit-appearance: none; appearance: none;
+  width: 1.8rem; height: 1.8rem; min-width: 1.8rem; flex-shrink: 0; margin: 0; cursor: pointer;
+  border: 0.15rem solid var(--on-surface-border-strong); border-radius: 0.4rem;
+  background: rgba(255, 255, 255, 0.06);
+  display: inline-grid; place-content: center;
+  accent-color: var(--action-secondary); /* progressiv förbättring */
+}
+.ampy-calc__lead-consent input::before {
+  content: ""; width: 1rem; height: 1rem; transform: scale(0);
+  transition: transform var(--motion-fast) var(--easing);
+  background: var(--action-secondary);
+  clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+}
+.ampy-calc__lead-consent input:checked { border-color: var(--action-secondary); }
+.ampy-calc__lead-consent input:checked::before { transform: scale(1); }
+.ampy-calc__lead-consent input:focus-visible { outline: 0; box-shadow: 0 0 0 3px rgba(28, 196, 175, 0.4); }
 .ampy-calc__lead-consent span { flex: 1; min-width: 0; }
-.ampy-calc__lead-consent input.is-invalid { outline: 2px solid var(--state-error); outline-offset: 2px; }
+.ampy-calc__lead-consent input.is-invalid { border-color: var(--state-error); box-shadow: 0 0 0 2px rgba(214, 76, 76, 0.5); }
 .ampy-calc__lead-consent a { color: var(--action-secondary); }
 .ampy-calc__lead-fine { font-size: var(--fs-xs); color: var(--on-surface-text-faint); text-align: center; }
+.ampy-calc__lead-cancel { font: inherit; color: var(--on-surface-text-muted); text-decoration: underline; padding: 0; }
+.ampy-calc__lead-cancel:hover { color: var(--text-inverse); }
+.ampy-calc__lead-cancel:focus-visible { outline: 0; box-shadow: 0 0 0 3px rgba(28, 196, 175, 0.4); border-radius: 0.3rem; }
 
 /* --- Före/efter-jämförelse (elkostnad per år) ----------------------------- */
 .ampy-calc__compare { display: flex; flex-direction: column; gap: var(--spacing-sm); }
@@ -442,8 +422,6 @@
 
 /* --- Animationer / första-paint reveal ------------------------------------ */
 @keyframes ampy-reveal { from { opacity: 0; transform: translateY(0.6rem); } to { opacity: 1; transform: none; } }
-@keyframes ampy-draw { to { stroke-dashoffset: 0; } }
-@keyframes ampy-zone-fade { to { opacity: 1; } }
 .ampy-calc__hero, .ampy-calc__trio, .ampy-calc__compare, .ampy-calc__cta-stack { animation: ampy-reveal var(--motion-normal) var(--easing) both; }
 .ampy-calc__hero { animation-delay: 40ms; }
 .ampy-calc__trio { animation-delay: 120ms; }

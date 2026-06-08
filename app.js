@@ -22,6 +22,7 @@
   }
   function el(tag, cls, txt) { var n = document.createElement(tag); if (cls) n.className = cls; if (txt != null) n.textContent = txt; return n; }
   function setText(id, t) { var n = $(id); if (n) n.textContent = t; }
+  function $all(sel) { return (ROOT || document).querySelectorAll(sel); } // scopat → inga krockar med andra widgets
   function clamp(n, lo, hi) { return Math.min(hi, Math.max(lo, n)); }
   var endActiveDrag = null; // sätts under pågående slider-drag (för global avbrott)
 
@@ -51,9 +52,15 @@
     var seg = (preset && preset.segment) || state.segment;
     var d = DATA.defaults[seg];
     state.segment = seg;
-    state.typ_id = (preset && preset.typ_id) || d.typ_id;
+    // Lita inte blint på preset: typ_id måste tillhöra segmentets kategori och
+    // kontext måste finnas för segmentet — annars faller vi tillbaka på defaults
+    // (en felaktig data-sida ska aldrig desynca UI och matematik tyst).
+    var kat = seg === "privat" ? "privat" : "kommersiell";
+    var pt = preset && lookup(DATA.watt_tabell, "id", preset.typ_id);
+    state.typ_id = (pt && pt.kat === kat) ? preset.typ_id : d.typ_id;
     state.antal = d.antal;
-    state._kontext = (preset && preset.kontext) || d.kontext;
+    var ctxOk = preset && DATA.brinntid_default.some(function (b) { return b.kontext === preset.kontext && b.segment === seg; });
+    state._kontext = ctxOk ? preset.kontext : d.kontext;
     var b = findBrinntid(state._kontext); state.timmar_dag = b ? b.timmar_dag : 8;
   }
   function setSegmentDefaults() {
@@ -92,15 +99,30 @@
       v = Math.round(v * 1000) / 1000;
       value = v; position(v); if (fire) o.onInput(v);
     }
-    // Gutter/thumb i px från faktisk rem (fungerar även om host-sidan ändrar root font-size)
-    var REM = parseFloat(getComputedStyle(document.documentElement).fontSize) || 10;
-    var GUT = 1.2 * REM, THUMB = 2.4 * REM;
-    function pickByX(cx) { var r = slider.getBoundingClientRect(); var usable = Math.max(1, r.width - THUMB); var frac = clamp((cx - r.left - GUT) / usable, 0, 1); return o.min + frac * (o.max - o.min); }
+    // Mät thumben varje gång → finger-till-värde matchar exakt det som ritas,
+    // även om host-sidan saknar 62.5%-basen eller ändrar root font-size (iOS Större text).
+    function pickByX(cx) {
+      var r = slider.getBoundingClientRect();
+      var THUMB = thumb.getBoundingClientRect().width || 24, GUT = THUMB / 2;
+      var usable = Math.max(1, r.width - THUMB);
+      var frac = clamp((cx - r.left - GUT) / usable, 0, 1);
+      return o.min + frac * (o.max - o.min);
+    }
     var drag = false;
-    function endDrag() { if (!drag) return; drag = false; dragging = false; endActiveDrag = null; slider.classList.remove("is-dragging"); scheduleRender(); }
+    function endDrag() {
+      if (!drag) return; drag = false; dragging = false; endActiveDrag = null;
+      // Ta bort skyddsnätet på window igen (läggs bara till under aktivt drag → ingen läcka)
+      window.removeEventListener("pointerup", endDrag);
+      window.removeEventListener("pointercancel", endDrag);
+      slider.classList.remove("is-dragging"); scheduleRender();
+    }
     slider.addEventListener("pointerdown", function (e) {
       drag = true; dragging = true; endActiveDrag = endDrag; slider.classList.add("is-dragging");
       try { slider.setPointerCapture(e.pointerId); } catch (x) {}
+      // Skyddsnät: om setPointerCapture misslyckas och fingret släpps UTANFÖR reglaget
+      // fångar vi släppet på window så draget aldrig fastnar. Tas bort i endDrag.
+      window.addEventListener("pointerup", endDrag);
+      window.addEventListener("pointercancel", endDrag);
       setVal(pickByX(e.clientX), true); e.preventDefault();
     });
     slider.addEventListener("blur", endDrag);
@@ -156,8 +178,8 @@
     var d = DATA.defaults[state.segment], plural = d.enhet_namn;
 
     // segment + region segmented (pressed states)
-    document.querySelectorAll("#segSegment button").forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.seg === state.segment)); });
-    document.querySelectorAll("#segRegion button").forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.region === state.elprisomrade)); });
+    $all('[id="segSegment"] button').forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.seg === state.segment)); });
+    $all('[id="segRegion"] button').forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.region === state.elprisomrade)); });
 
     $("segCaption").textContent = d.seg_caption;
     $("antalLabel").firstChild.nodeValue = "Antal " + plural + " ";
@@ -291,7 +313,7 @@
 
   // --- statiska handlers --------------------------------------------------
   function wireStatic() {
-    document.querySelectorAll("#segSegment button").forEach(function (btn) {
+    $all('[id="segSegment"] button').forEach(function (btn) {
       btn.onclick = function () {
         if (btn.dataset.seg === state.segment) return;
         state.segment = btn.dataset.seg; setSegmentDefaults();
@@ -299,10 +321,10 @@
         resetLead(); buildControls(); render();
       };
     });
-    document.querySelectorAll("#segRegion button").forEach(function (btn) {
+    $all('[id="segRegion"] button').forEach(function (btn) {
       btn.onclick = function () {
         state.elprisomrade = btn.dataset.region;
-        document.querySelectorAll("#segRegion button").forEach(function (b) { b.setAttribute("aria-pressed", String(b === btn)); });
+        $all('[id="segRegion"] button').forEach(function (b) { b.setAttribute("aria-pressed", String(b === btn)); });
         render();
       };
     });
@@ -335,8 +357,10 @@
       function invalid(id, msg) { var n = $(id); n.classList.add("is-invalid"); n.setAttribute("aria-invalid", "true"); leadMsg(false, msg); n.focus(); }
       if (!namn) { invalid("leadNamn", "Fyll i ditt namn."); return; }
       if (epost.indexOf("@") < 1 || epost.indexOf(".") < 0) { invalid("leadEpost", "Fyll i en giltig e-postadress."); return; }
-      if (!$("leadTel").value.trim()) { invalid("leadTel", "Fyll i ditt telefonnummer."); return; }
-      if (!$("leadPostnr").value.trim()) { invalid("leadPostnr", "Fyll i ditt postnummer."); return; }
+      var tel = $("leadTel").value.replace(/[^\d]/g, "");
+      if (tel.length < 7) { invalid("leadTel", "Fyll i ett giltigt telefonnummer."); return; }
+      var pnr = $("leadPostnr").value.trim().replace(/\s/g, "");
+      if (!/^\d{5}$/.test(pnr)) { invalid("leadPostnr", "Ange postnummer med fem siffror."); return; }
       if (!$("leadConsent").checked) { $("leadConsent").classList.add("is-invalid"); leadMsg(false, "Du behöver godkänna att vi får kontakta dig."); $("leadConsent").focus(); return; }
       var payload = {
         segment: state.segment, namn: namn, epost: epost,
@@ -344,6 +368,7 @@
         typ_id: state.typ_id, antal: state.antal, timmar_dag: state.timmar_dag, elprisomrade: state.elprisomrade,
         arlig_besparing: Math.round((lastResult || {}).arlig_besparing || 0),
         uppskattad_kostnad: Math.round(((lastResult || {}).breakdown || {}).total_led_kostnad || 0),
+        company_url: $("leadHp").value, // honeypot — alltid tomt för riktiga användare; servern släpper bort ifyllda
         samtycke: true, samtycke_tid: nowIso()
       };
       track("lead_submit", { segment: state.segment, besparing: bucket(payload.arlig_besparing) });
@@ -355,12 +380,23 @@
         fetch(ep, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
           .then(function (res) { if (!res.ok) { fail(); return; } done(); }).catch(fail);
       } else if (DATA.lead && DATA.lead.fallback_mailto) {
-        try { window.location.href = buildMailto(payload, DATA.lead.fallback_mailto); } catch (x) {}
-        done();
+        // Öppna mejlklienten via en tillfällig länk — navigerar INTE bort värdsidan.
+        // (window.location.href = mailto: river ner widgeten i en iframe/Bricks-embed.)
+        try {
+          var a = document.createElement("a");
+          a.href = buildMailto(payload, DATA.lead.fallback_mailto);
+          a.target = "_blank"; a.rel = "noopener";
+          (ROOT || document.body).appendChild(a); a.click(); a.remove();
+        } catch (x) {}
+        // Ärlig text: utan backend kan vi inte bekräfta att mejlet faktiskt gick iväg.
+        leadMsg(true, "Ett mejl öppnas i din e-postklient — skicka det så hör vår belysningsexpert av sig. Händer inget: mejla offert@ampy.se.");
+        btn.textContent = "Öppnade mejl ✓";
       } else { fail(); }
     };
     ["leadNamn", "leadEpost", "leadTel", "leadPostnr"].forEach(function (id) { $(id).addEventListener("input", function () { this.classList.remove("is-invalid"); this.removeAttribute("aria-invalid"); }); });
     $("leadConsent").addEventListener("change", function () { this.classList.remove("is-invalid"); });
+    // Avbryt → tillbaka till den enda CTA-knappen (formuläret kan annars knuffa svaret ur bild på mobil)
+    $("leadCancel").onclick = function () { resetLead(); var c = $("ctaBtn"); if (c) c.focus(); };
     wireTooltips();
   }
 
@@ -378,6 +414,7 @@
 
   function leadMsg(ok, text) {
     var m = $("leadMsg"); m.textContent = text;
+    m.setAttribute("role", ok ? "status" : "alert"); // ok = artig, fel = assertiv
     m.className = "ampy-calc__lead-msg " + (ok ? "ampy-calc__lead-msg--ok" : "ampy-calc__lead-msg--err");
   }
   function resetLead() {
@@ -385,6 +422,10 @@
     f.classList.add("is-hidden"); $("ctaBtn").classList.remove("is-hidden");
     $("leadSubmit").disabled = false; $("leadSubmit").textContent = "Skicka offertförfrågan";
     var m = $("leadMsg"); m.className = "ampy-calc__lead-msg is-hidden"; m.textContent = "";
+    // Rensa felmarkeringar så ett tidigare fel inte hänger kvar rött efter segmentbyte
+    ["leadNamn", "leadEpost", "leadTel", "leadPostnr", "leadConsent"].forEach(function (id) {
+      var n = $(id); if (!n) return; n.classList.remove("is-invalid"); n.removeAttribute("aria-invalid");
+    });
   }
 
   // Flytande info-tooltip (visas vid hover/fokus/tap på "i"-knappar)
@@ -403,7 +444,7 @@
       tip.style.transform = "translateY(-100%)";
     }
     function hide() { current = null; tip.style.display = "none"; }
-    document.querySelectorAll(".ampy-calc__tip").forEach(function (btn) {
+    $all(".ampy-calc__tip").forEach(function (btn) {
       btn.setAttribute("aria-label", btn.dataset.tip || "Mer info"); // hela texten är knappens namn för skärmläsare
       btn.addEventListener("mouseenter", function () { show(btn); });
       btn.addEventListener("mouseleave", hide);
@@ -415,6 +456,7 @@
     window.addEventListener("scroll", hide, true);
     window.addEventListener("resize", hide);
     window.addEventListener("orientationchange", hide);
+    document.addEventListener("keydown", function (e) { if (e.key === "Escape" && current) hide(); });
     document.addEventListener("click", function (e) { if (current && !(e.target.classList && e.target.classList.contains("ampy-calc__tip"))) hide(); });
   }
 
@@ -442,7 +484,15 @@
   // --- init ---------------------------------------------------------------
   function init() {
     ROOT = document.querySelector(".ampy-calc");
-    captureMeta(); applyPreset(); wireStatic(); buildControls(); render();
+    // Allt som läser DATA (applyPreset/buildControls) körs INNAN render()s try/catch.
+    // Validera först + omslut hela kedjan → ett datafel visar vänliga felet, aldrig en vit widget.
+    try {
+      if (window.AmpyLED && AmpyLED.validateData) AmpyLED.validateData(DATA);
+      captureMeta(); applyPreset(); wireStatic(); buildControls(); render();
+    } catch (e) {
+      renderError();
+      return;
+    }
     // Avbryt strandad slider-drag om sidan tappar fokus/döljs (iOS-avbrott)
     window.addEventListener("blur", function () { if (endActiveDrag) endActiveDrag(); });
     document.addEventListener("visibilitychange", function () { if (document.hidden && endActiveDrag) endActiveDrag(); });

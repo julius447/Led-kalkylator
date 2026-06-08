@@ -169,31 +169,31 @@
                 <div class="ampy-calc__lead-grid">
                   <div class="ampy-calc__lead-field">
                     <label for="leadNamn">Namn</label>
-                    <input id="leadNamn" name="namn" type="text" autocomplete="name" maxlength="80" aria-required="true" aria-describedby="leadMsg" required />
+                    <input id="leadNamn" name="namn" type="text" autocomplete="name" maxlength="80" aria-required="true" required />
                   </div>
                   <div class="ampy-calc__lead-field">
                     <label for="leadEpost">E-post</label>
-                    <input id="leadEpost" name="epost" type="email" autocomplete="email" inputmode="email" maxlength="120" aria-required="true" aria-describedby="leadMsg" required />
+                    <input id="leadEpost" name="epost" type="email" autocomplete="email" inputmode="email" maxlength="120" aria-required="true" required />
                   </div>
                   <div class="ampy-calc__lead-field">
                     <label for="leadTel">Telefon</label>
-                    <input id="leadTel" name="telefon" type="tel" autocomplete="tel" inputmode="tel" maxlength="20" aria-required="true" aria-describedby="leadMsg" required />
+                    <input id="leadTel" name="telefon" type="tel" autocomplete="tel" inputmode="tel" maxlength="20" aria-required="true" required />
                   </div>
                   <div class="ampy-calc__lead-field">
                     <label for="leadPostnr">Postnummer</label>
-                    <input id="leadPostnr" name="postnummer" type="text" inputmode="numeric" autocomplete="postal-code" maxlength="6" aria-required="true" aria-describedby="leadMsg" required />
+                    <input id="leadPostnr" name="postnummer" type="text" inputmode="numeric" autocomplete="postal-code" maxlength="6" pattern="\d{3}\s?\d{2}" aria-required="true" required />
                   </div>
                 </div>
                 <div class="ampy-calc__hp" aria-hidden="true">
                   <label>Lämna detta fält tomt<input id="leadHp" name="company_url" type="text" tabindex="-1" autocomplete="off" /></label>
                 </div>
                 <label class="ampy-calc__lead-consent">
-                  <input id="leadConsent" name="samtycke" type="checkbox" required />
+                  <input id="leadConsent" name="samtycke" type="checkbox" aria-required="true" required />
                   <span>Jag godkänner att Ampy sparar mina uppgifter för att kontakta mig med en offert, enligt <a href="https://ampy.se/integritetspolicy" target="_blank" rel="noopener">integritetspolicyn</a>.</span>
                 </label>
                 <button class="ampy-calc__btn ampy-calc__btn--primary ampy-calc__btn--block" id="leadSubmit" type="submit">Skicka offertförfrågan</button>
-                <p class="ampy-calc__lead-fine">Kostnadsfritt och utan förbindelse.</p>
-                <p class="ampy-calc__lead-msg is-hidden" id="leadMsg" role="alert" aria-live="assertive"></p>
+                <p class="ampy-calc__lead-fine">Kostnadsfritt och utan förbindelse. <button type="button" class="ampy-calc__lead-cancel" id="leadCancel">Avbryt</button></p>
+                <p class="ampy-calc__lead-msg is-hidden" id="leadMsg" role="alert"></p>
               </form>
             </div>
           </section>

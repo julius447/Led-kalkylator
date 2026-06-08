@@ -21,7 +21,10 @@ window.AMPY_LED_DATA = {
     not: "Medvetet lågt schablonpris per område — verklig besparing blir snarare högre."
   },
 
-  /* --- Segment-konfiguration (affärsregler i data, ej i motorn) -------------- */
+  /* --- Segment-konfiguration (affärsregler i data, ej i motorn) --------------
+     OBS: visa_co2 styr om CO₂ visas (Företag/BRF) eller byts mot kr/månad (Privat).
+     betalar_installation LÄSES INTE av motorn — installation ingår alltid i
+     kostnad_kr i watt_tabell. Bygg ingen prislogik på flaggan; den är historisk. */
   segments: {
     brf:     { betalar_installation: true,  visa_co2: true },
     foretag: { betalar_installation: true,  visa_co2: true },
@@ -111,7 +114,7 @@ window.AMPY_LED_DATA = {
     g_per_kwh: 464.79,
     metod: "Nordisk residualmix tillämpad i Sverige, marknadsbaserad (Scope 2), rapportår 2024. Endast Företag/BRF ESG.",
     kalla: "Energimarknadsinspektionen (Ei), publ. 2025-06-12, beräknad av Grexel",
-    datum: "Rapportår 2024 (verifierad 2026-06-05)."
+    datum: "Rapportår 2024 (verifierad 2026-06-06)."
   },
 
   /* --- Avdragsklausul per segment (försiktigt, inga falska avdrag) ----------- */
