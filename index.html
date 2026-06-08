@@ -14,6 +14,8 @@
   <meta property="og:url" content="https://ampy.se/led-kalkylatorn/" />
   <meta property="og:image" content="https://ampy.se/led-kalkylatorn/og.png" />
   <meta name="twitter:card" content="summary_large_image" />
+  <!-- Sidbas (Ampys designsystem). I Bricks/WordPress tillhandahålls detta av temat. -->
+  <style>html{font-size:62.5%}body{margin:0;background:rgb(247,249,251)}</style>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -22,7 +24,7 @@
 
       <header class="ampy-calc__header">
         <h1>Vad sparar du på att byta till LED?</h1>
-        <p>Räkna transparent vad bytet ger — full siffra gratis, försiktigt räknat.</p>
+        <p>Räkna transparent vad bytet ger — konservativt räknat.</p>
       </header>
 
       <div class="ampy-calc__main">
@@ -174,11 +176,11 @@
                   </div>
                   <div class="ampy-calc__lead-field">
                     <label for="leadTel">Telefon <span class="ampy-calc__lead-optional">(frivilligt)</span></label>
-                    <input id="leadTel" name="telefon" type="tel" autocomplete="tel" inputmode="tel" maxlength="20" placeholder="07X XXX XX XX" />
+                    <input id="leadTel" name="telefon" type="tel" autocomplete="tel" inputmode="tel" maxlength="20" />
                   </div>
                   <div class="ampy-calc__lead-field">
                     <label for="leadPostnr">Postnummer <span class="ampy-calc__lead-optional">(frivilligt)</span></label>
-                    <input id="leadPostnr" name="postnummer" type="text" inputmode="numeric" autocomplete="postal-code" maxlength="6" placeholder="123 45" />
+                    <input id="leadPostnr" name="postnummer" type="text" inputmode="numeric" autocomplete="postal-code" maxlength="6" />
                   </div>
                 </div>
                 <div class="ampy-calc__hp" aria-hidden="true">
@@ -186,10 +188,10 @@
                 </div>
                 <label class="ampy-calc__lead-consent">
                   <input id="leadConsent" name="samtycke" type="checkbox" required />
-                  <span>Jag godkänner att Ampy sparar mina uppgifter för att kontakta mig med en offert, enligt <a href="https://ampy.se/integritetspolicy" target="_blank" rel="noopener">integritetspolicyn</a>. Vi säljer aldrig dina uppgifter.</span>
+                  <span>Jag godkänner att Ampy sparar mina uppgifter för att kontakta mig med en offert, enligt <a href="https://ampy.se/integritetspolicy" target="_blank" rel="noopener">integritetspolicyn</a>.</span>
                 </label>
                 <button class="ampy-calc__btn ampy-calc__btn--primary ampy-calc__btn--block" id="leadSubmit" type="submit">Skicka offertförfrågan</button>
-                <p class="ampy-calc__lead-fine">Kostnadsfritt och utan förbindelse. Inga säljsamtal du inte bett om.</p>
+                <p class="ampy-calc__lead-fine">Kostnadsfritt och utan förbindelse.</p>
                 <p class="ampy-calc__lead-msg is-hidden" id="leadMsg" role="alert" aria-live="assertive"></p>
               </form>
             </div>

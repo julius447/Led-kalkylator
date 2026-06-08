@@ -14,7 +14,12 @@
   function fmtInt(v) { return (v == null || !isFinite(v)) ? "—" : group(v); }
   function fmtYears(y) { return (y == null || !isFinite(y)) ? "—" : y.toFixed(1).replace(".", ","); }
   function fmtCo2(kg) { return kg >= 1000 ? (kg / 1000).toFixed(1).replace(".", ",") + " ton" : Math.round(kg) + " kg"; }
-  function $(id) { return document.getElementById(id); }
+  // Scopa ID-uppslag till widgeten → krockar inte med andra element/ID på en Bricks-sida
+  var ROOT = null;
+  function $(id) {
+    if (ROOT) return ROOT.id === id ? ROOT : ROOT.querySelector('[id="' + id + '"]');
+    return document.getElementById(id);
+  }
   function el(tag, cls, txt) { var n = document.createElement(tag); if (cls) n.className = cls; if (txt != null) n.textContent = txt; return n; }
   function setText(id, t) { var n = $(id); if (n) n.textContent = t; }
   function clamp(n, lo, hi) { return Math.min(hi, Math.max(lo, n)); }
@@ -245,8 +250,7 @@
     }
 
     animateNumber("cost", b.total_led_kostnad, fmtKr, "statCost");
-    $("statCostSub").textContent = "≈ " + fmtKr(b.per_enhet_kostnad) + " kr/" + (privat ? "ljuskälla" : "armatur") +
-      (privat ? " · inkl moms efter ROT" : " · ex moms");
+    $("statCostSub").textContent = "≈ " + fmtKr(b.per_enhet_kostnad) + " kr/" + (privat ? "ljuskälla" : "armatur") + " · inkl installation";
   }
 
   // Före/efter — elkostnad per år (ersätter payback-kurvan)
@@ -403,7 +407,8 @@
       btn.addEventListener("mouseleave", hide);
       btn.addEventListener("focus", function () { show(btn); });
       btn.addEventListener("blur", hide);
-      btn.addEventListener("click", function (e) { e.preventDefault(); e.stopPropagation(); if (current === btn) hide(); else show(btn); });
+      // Tap visar alltid (toggla inte) — annars dolde focus+click varandra (dubbeltryck på mobil)
+      btn.addEventListener("click", function (e) { e.preventDefault(); e.stopPropagation(); show(btn); });
     });
     window.addEventListener("scroll", hide, true);
     window.addEventListener("resize", hide);
@@ -434,6 +439,7 @@
 
   // --- init ---------------------------------------------------------------
   function init() {
+    ROOT = document.querySelector(".ampy-calc");
     captureMeta(); applyPreset(); wireStatic(); buildControls(); render();
     // Avbryt strandad slider-drag om sidan tappar fokus/döljs (iOS-avbrott)
     window.addEventListener("blur", function () { if (endActiveDrag) endActiveDrag(); });
