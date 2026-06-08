@@ -47,7 +47,7 @@
 
   /* Spacing */
   --spacing-xs: 0.5rem; --spacing-sm: 0.75rem; --spacing-md: 1rem;
-  --spacing-lg: 1.5rem; --spacing-xl: 2rem; --spacing-2xl: 3rem;
+  --spacing-lg: 1.5rem; --spacing-xl: 2rem; --spacing-2xl: 3rem; --spacing-3xl: 4rem;
   /* Radius */
   --radius-sm: 0.6rem; --radius-md: 1.2rem; --radius-lg: 2rem; --radius-full: 999rem;
   /* Shadow */
@@ -57,15 +57,17 @@
   /* Motion */
   --motion-fast: 150ms; --motion-normal: 300ms; --easing: cubic-bezier(0.2, 0, 0.2, 1);
 
-  /* Typskala (fluid clamp, 1rem=10px) */
-  --fs-xs: clamp(1rem, calc(1rem + (1.2 - 1) * ((100vw - 320px) / 960)), 1.2rem);
-  --fs-sm: clamp(1.2rem, calc(1.2rem + (1.4 - 1.2) * ((100vw - 320px) / 960)), 1.4rem);
-  --fs-md: clamp(1.7rem, calc(1.7rem + (1.8 - 1.7) * ((100vw - 320px) / 960)), 1.8rem);
-  --fs-lg: clamp(1.8rem, calc(1.8rem + (2.8 - 1.8) * ((100vw - 320px) / 960)), 2.8rem);
-  --fs-xl: clamp(2rem, calc(2rem + (3.6 - 2) * ((100vw - 320px) / 960)), 3.6rem);
-  --fs-2xl: clamp(2.2rem, calc(2.2rem + (4.8 - 2.2) * ((100vw - 320px) / 960)), 4.8rem);
-  --fs-3xl: clamp(2.6rem, calc(2.6rem + (6 - 2.6) * ((100vw - 320px) / 960)), 6rem);
-  --fs-4xl: clamp(4rem, calc(4rem + (7.5 - 4) * ((100vw - 320px) / 960)), 7.5rem);
+  /* Typskala — ÄKTA fluid (vw-baserad lutning, ankare 375→1280px, 1rem=10px).
+     Gör att typografin faktiskt växer på desktop (gnutta större) men håller en
+     genomtänkt mobil-miniminivå. Tidigare formel växte i px och fastnade vid min. */
+  --fs-xs:  clamp(1.2rem, calc(1.159rem + 0.110vw), 1.3rem);
+  --fs-sm:  clamp(1.3rem, calc(1.217rem + 0.221vw), 1.5rem);
+  --fs-md:  clamp(1.6rem, calc(1.476rem + 0.331vw), 1.9rem);
+  --fs-lg:  clamp(1.8rem, calc(1.551rem + 0.663vw), 2.4rem);
+  --fs-xl:  clamp(2.1rem, calc(1.810rem + 0.773vw), 2.8rem);
+  --fs-2xl: clamp(2.4rem, calc(1.986rem + 1.105vw), 3.4rem);
+  --fs-3xl: clamp(2.8rem, calc(2.137rem + 1.768vw), 4.4rem);
+  --fs-4xl: clamp(3.8rem, calc(3.054rem + 1.989vw), 5.6rem);
 
   --font-heading: "Plus Jakarta Sans", system-ui, sans-serif;
   --font-body: "Outfit", system-ui, sans-serif;
@@ -123,13 +125,13 @@
 .ampy-calc__card--surface {
   background: var(--bg-surface); color: var(--text-inverse); border-color: transparent;
   box-shadow: var(--shadow-lg);
-  /* Luftigare resultatkort (best practice spacing) */
-  padding: var(--spacing-2xl); gap: var(--spacing-xl);
+  /* Luftigt resultatkort med jämn vertikal rytm (senior spacing) */
+  padding: var(--spacing-3xl); gap: var(--spacing-2xl);
   background-image:
     radial-gradient(120% 60% at 90% -10%, rgba(0, 169, 145, 0.28), transparent 60%),
     radial-gradient(80% 50% at -10% 110%, rgba(57, 194, 129, 0.16), transparent 60%);
 }
-@media (max-width: 600px) { .ampy-calc__card--surface { padding: var(--spacing-xl) var(--spacing-lg); gap: var(--spacing-lg); } }
+@media (max-width: 600px) { .ampy-calc__card--surface { padding: var(--spacing-xl) var(--spacing-lg); gap: var(--spacing-xl); } }
 
 /* --- Tiers / fält --------------------------------------------------------- */
 .ampy-calc__tier { display: flex; flex-direction: column; gap: var(--spacing-md); }
@@ -299,7 +301,7 @@
   display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: auto auto auto;
   grid-auto-flow: column; column-gap: var(--spacing-lg); row-gap: 0.2rem; align-items: baseline;
 }
-.ampy-calc__trio-label { font-family: var(--font-body); font-size: var(--fs-xs); color: var(--on-surface-text-muted); font-weight: 500; letter-spacing: 0.02em; text-transform: uppercase; }
+.ampy-calc__trio-label { font-family: var(--font-body); font-size: var(--fs-xs); color: var(--on-surface-text-muted); font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
 .ampy-calc__trio-value { font-family: var(--font-heading); font-size: var(--fs-xl); font-weight: 700; line-height: 1.2; color: var(--text-inverse); letter-spacing: -0.015em; display: inline-flex; align-items: baseline; gap: 0.6rem; white-space: nowrap; }
 .ampy-calc__trio-unit { font-family: var(--font-body); font-size: var(--fs-sm); font-weight: 500; color: var(--on-surface-text-muted); }
 .ampy-calc__trio-sub { color: var(--on-surface-text-faint); font-size: var(--fs-xs); line-height: 1.5; align-self: start; }
@@ -307,7 +309,8 @@
   .ampy-calc__trio { grid-template-columns: 1fr; grid-auto-flow: row; }
   .ampy-calc__trio-label:not(:first-child) { margin-top: var(--spacing-md); }
 }
-.ampy-calc__internal-divider { height: 1px; background: var(--on-surface-border); border: 0; margin: var(--spacing-lg) 0; }
+/* Marginal 0 — den jämna flex-gapen (2xl) ger rytmen; linjen blir en lugn avdelare */
+.ampy-calc__internal-divider { height: 1px; background: var(--on-surface-border); border: 0; margin: 0; }
 
 /* Energi-bar (ersätter intäktskällor) */
 .ampy-calc__evidence { display: flex; flex-direction: column; gap: var(--spacing-sm); }
@@ -352,7 +355,7 @@
 .ampy-calc__chart.is-be-early .ampy-calc__chart-corner--today { display: none; }
 
 /* --- Knappar / CTA / e-post ----------------------------------------------- */
-.ampy-calc__cta-stack { display: flex; flex-direction: column; gap: var(--spacing-md); padding-top: var(--spacing-md); border-top: 1px solid var(--on-surface-border); }
+.ampy-calc__cta-stack { display: flex; flex-direction: column; gap: var(--spacing-md); }
 .ampy-calc__btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--spacing-xs); padding: var(--spacing-sm) var(--spacing-lg); border-radius: var(--radius-md); font-family: var(--font-heading); font-weight: 600; font-size: var(--fs-sm); min-height: 4.8rem; transition: opacity var(--motion-fast), background var(--motion-fast), box-shadow var(--motion-fast), transform var(--motion-fast); }
 .ampy-calc__btn:hover { opacity: 0.92; }
 .ampy-calc__btn:active { opacity: 0.82; transform: translateY(1px); }
