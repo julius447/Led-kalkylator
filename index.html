@@ -22,7 +22,7 @@
 
       <header class="ampy-calc__header">
         <h1>Vad sparar du på att byta till LED?</h1>
-        <p>Räkna transparent vad bytet ger — full siffra gratis, inga gissningar.</p>
+        <p>Räkna transparent vad bytet ger — full siffra gratis, försiktigt räknat.</p>
       </header>
 
       <div class="ampy-calc__main">
@@ -88,7 +88,7 @@
               <label class="ampy-calc__field-label-tiny">Brinntid
                 <button type="button" class="ampy-calc__tip" data-tip="Timmar per dygn som belysningen lyser, i snitt över året. ”Snitt brinntid” tar ett genomsnitt över alla armaturer i olika utrymmen.">i</button>
               </label>
-              <span class="ampy-calc__value-prominent ampy-calc__t-mono" style="font-size:var(--fs-md);">
+              <span class="ampy-calc__value-prominent ampy-calc__value-prominent--sm ampy-calc__t-mono">
                 <span id="brinntidValue">—</span><span class="ampy-calc__value-unit">h/dygn</span>
               </span>
               <div id="brinntidSlider"></div>
@@ -110,14 +110,16 @@
 
         <!-- HÖGER: resultat -->
         <div class="ampy-calc__result-stack">
-          <section class="ampy-calc__card ampy-calc__card--surface" aria-live="polite" aria-label="Resultat">
+          <section class="ampy-calc__card ampy-calc__card--surface" aria-label="Ditt resultat">
+            <h2 class="sr-only">Ditt resultat</h2>
+            <p class="sr-only" id="resultSummary" aria-live="polite"></p>
 
             <div class="ampy-calc__hero">
               <span class="ampy-calc__hero-eyebrow">Årlig besparing</span>
               <span class="ampy-calc__hero-value ampy-calc__t-mono">
                 <span id="heroValue">—</span><span class="ampy-calc__hero-unit">kr/år</span>
               </span>
-              <span class="ampy-calc__hero-sub" id="heroSub">Så mycket lägre blir elkostnaden — varje år, år efter år.</span>
+              <span class="ampy-calc__hero-sub" id="heroSub">Så mycket lägre kan elkostnaden bli — varje år, så länge belysningen lyser.</span>
             </div>
 
             <div class="ampy-calc__trio">
@@ -129,7 +131,7 @@
               <span class="ampy-calc__trio-value ampy-calc__t-mono"><span id="statB">—</span><span class="ampy-calc__trio-unit" id="statBUnit">/år</span></span>
               <span class="ampy-calc__trio-sub" id="statBSub">—</span>
 
-              <span class="ampy-calc__trio-label">Uppskattad kostnad<sup>*</sup></span>
+              <span class="ampy-calc__trio-label">Uppskattad kostnad</span>
               <span class="ampy-calc__trio-value ampy-calc__t-mono"><span id="statCost">—</span><span class="ampy-calc__trio-unit">kr</span></span>
               <span class="ampy-calc__trio-sub" id="statCostSub">—</span>
             </div>
@@ -139,12 +141,12 @@
             <!-- Före/efter — elkostnad per år (ersätter payback-kurvan) -->
             <div class="ampy-calc__compare">
               <span class="ampy-calc__evidence-label">Vad belysningen kostar per år</span>
-              <div class="ampy-calc__compare-row">
+              <div class="ampy-calc__compare-row ampy-calc__compare-row--now">
                 <span class="ampy-calc__compare-key">I dag</span>
                 <span class="ampy-calc__compare-track"><span class="ampy-calc__compare-bar ampy-calc__compare-bar--now" id="barNow"></span></span>
                 <span class="ampy-calc__compare-val ampy-calc__t-mono" id="costNow">—</span>
               </div>
-              <div class="ampy-calc__compare-row">
+              <div class="ampy-calc__compare-row ampy-calc__compare-row--led">
                 <span class="ampy-calc__compare-key">Med LED</span>
                 <span class="ampy-calc__compare-track"><span class="ampy-calc__compare-bar ampy-calc__compare-bar--led" id="barLed"></span></span>
                 <span class="ampy-calc__compare-val ampy-calc__t-mono" id="costLed">—</span>
@@ -157,12 +159,46 @@
                 <span id="ctaLabel">Få en skräddarsydd offert</span>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
               </button>
+
+              <!-- Lead-formulär: fälls ut vid klick på CTA (värde först, ingen vägg) -->
+              <form class="ampy-calc__lead-form is-hidden" id="leadForm" novalidate>
+                <p class="ampy-calc__lead-intro">Vår belysningsexpert hör av sig med ett offertförslag, oftast inom en arbetsdag.</p>
+                <div class="ampy-calc__lead-grid">
+                  <div class="ampy-calc__lead-field">
+                    <label for="leadNamn">Namn</label>
+                    <input id="leadNamn" name="namn" type="text" autocomplete="name" maxlength="80" aria-required="true" aria-describedby="leadMsg" required />
+                  </div>
+                  <div class="ampy-calc__lead-field">
+                    <label for="leadEpost">E-post</label>
+                    <input id="leadEpost" name="epost" type="email" autocomplete="email" inputmode="email" maxlength="120" aria-required="true" aria-describedby="leadMsg" required />
+                  </div>
+                  <div class="ampy-calc__lead-field">
+                    <label for="leadTel">Telefon <span class="ampy-calc__lead-optional">(frivilligt)</span></label>
+                    <input id="leadTel" name="telefon" type="tel" autocomplete="tel" inputmode="tel" maxlength="20" placeholder="07X XXX XX XX" />
+                  </div>
+                  <div class="ampy-calc__lead-field">
+                    <label for="leadPostnr">Postnummer <span class="ampy-calc__lead-optional">(frivilligt)</span></label>
+                    <input id="leadPostnr" name="postnummer" type="text" inputmode="numeric" autocomplete="postal-code" maxlength="6" placeholder="123 45" />
+                  </div>
+                </div>
+                <div class="ampy-calc__hp" aria-hidden="true">
+                  <label>Lämna detta fält tomt<input id="leadHp" name="company_url" type="text" tabindex="-1" autocomplete="off" /></label>
+                </div>
+                <label class="ampy-calc__lead-consent">
+                  <input id="leadConsent" name="samtycke" type="checkbox" required />
+                  <span>Jag godkänner att Ampy sparar mina uppgifter för att kontakta mig med en offert, enligt <a href="https://ampy.se/integritetspolicy" target="_blank" rel="noopener">integritetspolicyn</a>. Vi säljer aldrig dina uppgifter.</span>
+                </label>
+                <button class="ampy-calc__btn ampy-calc__btn--primary ampy-calc__btn--block" id="leadSubmit" type="submit">Skicka offertförfrågan</button>
+                <p class="ampy-calc__lead-fine">Kostnadsfritt och utan förbindelse. Inga säljsamtal du inte bett om.</p>
+                <p class="ampy-calc__lead-msg is-hidden" id="leadMsg" role="alert" aria-live="assertive"></p>
+              </form>
             </div>
           </section>
 
-          <section class="ampy-calc__methodology" id="methodology">
+          <section class="ampy-calc__methodology" id="methodology" aria-label="Så har vi räknat">
+            <h2 class="sr-only">Så har vi räknat</h2>
             <details class="ampy-calc__disclosure">
-              <summary class="ampy-calc__disclosure-summary" style="color:var(--text-primary);">Så har vi räknat</summary>
+              <summary class="ampy-calc__disclosure-summary">Så har vi räknat</summary>
               <div class="ampy-calc__disclosure-content">
                 <div class="ampy-calc__methodology-stack" id="methodologyStack"></div>
                 <div class="ampy-calc__disclaimers" id="disclaimers"></div>

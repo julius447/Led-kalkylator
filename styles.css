@@ -6,6 +6,7 @@
 @import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700&family=Outfit:wght@400;500;600&family=JetBrains+Mono:wght@500;600;700&display=swap");
 
 html { font-size: 62.5%; }
+body { margin: 0; }
 
 .ampy-calc {
   /* Färg — semantiska tokens (ljus yta) */
@@ -26,7 +27,7 @@ html { font-size: 62.5%; }
   /* På mörk navy-yta */
   --on-surface-text: rgba(255, 255, 255, 0.94);
   --on-surface-text-muted: rgba(255, 255, 255, 0.66);
-  --on-surface-text-faint: rgba(255, 255, 255, 0.42);
+  --on-surface-text-faint: rgba(255, 255, 255, 0.55); /* AA: stödtext på navy ~5:1 */
   --on-surface-border: rgba(255, 255, 255, 0.14);
   --on-surface-border-strong: rgba(255, 255, 255, 0.28);
   --on-surface-subtle-bg: rgba(255, 255, 255, 0.06);
@@ -103,7 +104,8 @@ html { font-size: 62.5%; }
   gap: var(--spacing-xl); align-items: start;
 }
 .ampy-calc__result-stack { display: flex; flex-direction: column; gap: var(--spacing-md); min-width: 0; }
-@media (max-width: 960px) { .ampy-calc__main { grid-template-columns: 1fr; } }
+.ampy-calc__card { min-width: 0; max-width: 100%; }
+@media (max-width: 960px) { .ampy-calc__main { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 768px) {
   .ampy-calc__container { padding: var(--spacing-lg) var(--spacing-md); gap: var(--spacing-xl); }
 }
@@ -173,7 +175,8 @@ html { font-size: 62.5%; }
 .ampy-calc__selector-list {
   position: absolute; top: calc(100% + var(--spacing-xs)); left: 0; right: 0; z-index: 30;
   background: var(--bg-primary); border: 1px solid var(--border-default); border-radius: var(--radius-md);
-  box-shadow: var(--shadow-lg); max-height: 44rem; overflow-y: auto; padding: var(--spacing-xs); display: none;
+  box-shadow: var(--shadow-lg); max-height: min(44rem, 60vh); overflow-y: auto; -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain; padding: var(--spacing-xs); display: none;
 }
 .ampy-calc__selector[aria-expanded="true"] .ampy-calc__selector-list { display: block; }
 .ampy-calc__selector-group {
@@ -200,6 +203,7 @@ html { font-size: 62.5%; }
   font-family: var(--font-mono); font-weight: 700; color: var(--text-primary); font-size: var(--fs-xl);
   line-height: 1.3; letter-spacing: -0.01em; display: inline-flex; align-items: baseline; gap: 0.6rem;
 }
+.ampy-calc__value-prominent--sm { font-size: var(--fs-md); }
 .ampy-calc__value-unit { font-size: var(--fs-sm); color: var(--text-secondary); font-weight: 500; font-family: var(--font-body); }
 .ampy-calc__slider-wrap { display: flex; flex-direction: column; gap: var(--spacing-sm); }
 .ampy-calc__slider { position: relative; height: 4.4rem; touch-action: none; }
@@ -207,14 +211,19 @@ html { font-size: 62.5%; }
 .ampy-calc__slider-fill { position: absolute; top: 50%; left: 1.2rem; height: 0.6rem; transform: translateY(-50%); background: linear-gradient(90deg, var(--action-primary), var(--state-success)); border-radius: var(--radius-full); transition: width var(--motion-normal) var(--easing); }
 .ampy-calc__slider-thumb {
   position: absolute; top: 50%; width: 2.4rem; height: 2.4rem; border-radius: var(--radius-full);
-  background: var(--bg-primary); border: 3px solid var(--action-primary); box-shadow: var(--shadow-md);
+  background: var(--bg-primary); border: 0.3rem solid var(--action-primary); box-shadow: var(--shadow-md);
   transform: translate(-50%, -50%); transition: left var(--motion-normal) var(--easing); cursor: grab;
 }
 .ampy-calc__slider:active .ampy-calc__slider-thumb { transform: translate(-50%, -50%) scale(1.08); cursor: grabbing; }
 .ampy-calc__slider:focus-within .ampy-calc__slider-thumb { box-shadow: var(--shadow-md), 0 0 0 4px rgba(0, 169, 145, 0.25); }
 .ampy-calc__slider:focus-visible { outline: 0; }
-.ampy-calc__slider-ticks { display: flex; justify-content: space-between; padding: 0 1.2rem; }
-.ampy-calc__slider-tick { font-family: var(--font-mono); font-size: var(--fs-xs); color: var(--text-secondary); padding: 0.2rem 0.4rem; border-radius: var(--radius-sm); }
+.ampy-calc__slider-ticks { display: flex; justify-content: space-between; padding: 0 0.4rem; }
+.ampy-calc__slider-tick {
+  font-family: var(--font-mono); font-size: var(--fs-xs); color: var(--text-secondary);
+  min-height: 3.2rem; display: inline-flex; align-items: center; justify-content: center;
+  padding: 0.6rem 0.4rem; border-radius: var(--radius-sm);
+  touch-action: manipulation; -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none;
+}
 .ampy-calc__slider-tick:hover { color: var(--text-primary); }
 .ampy-calc__slider-tick--active { color: var(--action-primary); font-weight: 700; }
 
@@ -233,8 +242,10 @@ html { font-size: 62.5%; }
 .ampy-calc__segmented-option {
   padding: var(--spacing-sm) var(--spacing-xs); font-family: var(--font-heading); font-weight: 600;
   font-size: var(--fs-sm); color: var(--text-secondary); border-radius: var(--radius-sm); text-align: center;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-height: 4rem;
   transition: background var(--motion-fast), color var(--motion-fast), box-shadow var(--motion-fast);
 }
+@media (max-width: 380px) { .ampy-calc__segmented-option { padding: var(--spacing-sm) 0.3rem; font-size: var(--fs-xs); } }
 .ampy-calc__segmented-option:hover { color: var(--text-primary); }
 .ampy-calc__segmented-option[aria-pressed="true"] { background: var(--bg-primary); color: var(--action-primary); box-shadow: var(--shadow-sm); }
 .ampy-calc__segmented-option:focus-visible { outline: 0; box-shadow: 0 0 0 3px rgba(0, 169, 145, 0.3); }
@@ -343,7 +354,7 @@ html { font-size: 62.5%; }
 .ampy-calc__btn--primary { background: var(--action-primary); color: var(--text-inverse); box-shadow: var(--shadow-md); }
 .ampy-calc__btn--lg { padding: var(--spacing-md) var(--spacing-xl); min-height: 5.6rem; font-size: var(--fs-md); }
 .ampy-calc__btn--block { width: 100%; }
-.ampy-calc__btn--outline { background: transparent; color: var(--text-inverse); border: 1.5px solid var(--on-surface-border-strong); }
+.ampy-calc__btn--outline { background: transparent; color: var(--text-inverse); border: 0.15rem solid var(--on-surface-border-strong); }
 .ampy-calc__btn svg { width: 1.8rem; height: 1.8rem; }
 .ampy-calc__cta-secondary { padding-top: var(--spacing-sm); }
 .ampy-calc__email-row { display: flex; gap: var(--spacing-sm); flex-wrap: wrap; }
@@ -363,15 +374,52 @@ html { font-size: 62.5%; }
 .ampy-calc__methodology-item code { align-self: flex-start; font-family: var(--font-mono); background: var(--bg-subtle); padding: 0.2rem var(--spacing-xs); border-radius: var(--radius-sm); color: var(--text-primary); font-weight: 600; font-size: var(--fs-xs); }
 .ampy-calc__disclaimers { margin-top: var(--spacing-md); padding-top: var(--spacing-md); border-top: 1px solid var(--border-default); color: var(--text-secondary); font-size: var(--fs-xs); line-height: 1.55; display: flex; flex-direction: column; gap: var(--spacing-sm); }
 
+/* --- Slider: tracka fingret 1:1 under drag (ingen transition-lag) --------- */
+.ampy-calc__slider { touch-action: none; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; overscroll-behavior: contain; }
+.ampy-calc__slider.is-dragging .ampy-calc__slider-thumb,
+.ampy-calc__slider.is-dragging .ampy-calc__slider-fill { transition: none; }
+
+/* --- Lead-formulär (fälls ut under CTA, på mörk yta) ---------------------- */
+.ampy-calc__lead-form { display: flex; flex-direction: column; gap: var(--spacing-md); }
+.ampy-calc__lead-intro { color: var(--on-surface-text-muted); font-size: var(--fs-sm); }
+.ampy-calc__lead-grid { display: grid; grid-template-columns: 1fr; gap: var(--spacing-md); }
+@media (min-width: 600px) { .ampy-calc__lead-grid { grid-template-columns: 1fr 1fr; } }
+.ampy-calc__lead-field { display: flex; flex-direction: column; gap: var(--spacing-xs); min-width: 0; }
+.ampy-calc__lead-field label { font-size: var(--fs-xs); color: var(--on-surface-text); font-weight: 500; }
+.ampy-calc__lead-field input {
+  width: 100%; font-family: var(--font-body); font-size: var(--fs-sm);
+  padding: var(--spacing-sm) var(--spacing-md); min-height: 4.8rem; border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.05); color: var(--text-inverse); border: 1px solid var(--on-surface-border-strong);
+}
+.ampy-calc__lead-field input::placeholder { color: var(--on-surface-text-faint); }
+.ampy-calc__lead-field input:focus-visible { outline: 0; border-color: var(--action-secondary); box-shadow: 0 0 0 3px rgba(28, 196, 175, 0.35); }
+.ampy-calc__lead-field input.is-invalid { border-color: var(--state-error); }
+.ampy-calc__hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+.ampy-calc__lead-msg { font-size: var(--fs-sm); padding: var(--spacing-sm) var(--spacing-md); border-radius: var(--radius-md); }
+.ampy-calc__lead-msg--ok { background: rgba(57, 194, 129, 0.16); color: var(--text-inverse); border: 1px solid var(--state-success); }
+.ampy-calc__lead-msg--err { background: rgba(214, 76, 76, 0.16); color: var(--text-inverse); border: 1px solid var(--state-error); }
+.ampy-calc__lead-optional { color: var(--on-surface-text-faint); font-weight: 400; }
+.ampy-calc__lead-consent { display: flex; align-items: flex-start; gap: var(--spacing-sm); font-size: var(--fs-xs); color: var(--on-surface-text-muted); line-height: 1.45; }
+.ampy-calc__lead-consent input { width: 1.8rem; height: 1.8rem; flex-shrink: 0; margin-top: 0.2rem; accent-color: var(--action-secondary); }
+.ampy-calc__lead-consent input.is-invalid { outline: 2px solid var(--state-error); outline-offset: 2px; }
+.ampy-calc__lead-consent a { color: var(--action-secondary); }
+.ampy-calc__lead-fine { font-size: var(--fs-xs); color: var(--on-surface-text-faint); text-align: center; }
+
 /* --- Före/efter-jämförelse (elkostnad per år) ----------------------------- */
 .ampy-calc__compare { display: flex; flex-direction: column; gap: var(--spacing-sm); }
 .ampy-calc__compare-row { display: flex; align-items: center; gap: var(--spacing-md); }
-.ampy-calc__compare-key { width: 6rem; flex-shrink: 0; font-size: var(--fs-xs); color: var(--on-surface-text-muted); }
+.ampy-calc__compare-key { width: 6rem; flex-shrink: 0; font-size: var(--fs-xs); font-weight: 600; }
+.ampy-calc__compare-row--now .ampy-calc__compare-key { color: var(--state-warning); }
+.ampy-calc__compare-row--led .ampy-calc__compare-key { color: var(--state-success); }
 .ampy-calc__compare-track { flex: 1; height: 2.4rem; background: var(--on-surface-subtle-bg); border-radius: var(--radius-full); overflow: hidden; }
-.ampy-calc__compare-bar { display: block; height: 100%; border-radius: var(--radius-full); transition: width var(--motion-normal) var(--easing); }
+.ampy-calc__compare-bar { display: block; height: 100%; min-width: 1.6rem; border-radius: var(--radius-full); transition: width var(--motion-normal) var(--easing); }
 .ampy-calc__compare-bar--now { background: var(--chart-line-loss); }
 .ampy-calc__compare-bar--led { background: var(--state-success); }
-.ampy-calc__compare-val { width: 9rem; flex-shrink: 0; text-align: right; font-size: var(--fs-sm); font-weight: 600; color: var(--text-inverse); }
+.ampy-calc__compare-val { min-width: 9rem; flex-shrink: 0; text-align: right; white-space: nowrap; font-size: var(--fs-sm); font-weight: 600; color: var(--text-inverse); }
+@media (max-width: 560px) {
+  .ampy-calc__compare-key { width: 5rem; }
+  .ampy-calc__compare-val { min-width: 7.5rem; font-size: var(--fs-xs); }
+}
 
 /* --- Info-tooltip (flytande) ---------------------------------------------- */
 .ampy-calc__tooltip {
@@ -386,11 +434,10 @@ html { font-size: 62.5%; }
 @keyframes ampy-reveal { from { opacity: 0; transform: translateY(0.6rem); } to { opacity: 1; transform: none; } }
 @keyframes ampy-draw { to { stroke-dashoffset: 0; } }
 @keyframes ampy-zone-fade { to { opacity: 1; } }
-.ampy-calc__hero, .ampy-calc__trio, .ampy-calc__evidence, .ampy-calc__chart-block, .ampy-calc__cta-stack { animation: ampy-reveal var(--motion-normal) var(--easing) both; }
+.ampy-calc__hero, .ampy-calc__trio, .ampy-calc__compare, .ampy-calc__cta-stack { animation: ampy-reveal var(--motion-normal) var(--easing) both; }
 .ampy-calc__hero { animation-delay: 40ms; }
 .ampy-calc__trio { animation-delay: 120ms; }
-.ampy-calc__evidence { animation-delay: 180ms; }
-.ampy-calc__chart-block { animation-delay: 220ms; }
+.ampy-calc__compare { animation-delay: 180ms; }
 .ampy-calc__cta-stack { animation-delay: 260ms; }
 
 @media (prefers-reduced-motion: reduce) {

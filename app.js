@@ -16,7 +16,9 @@
   function fmtCo2(kg) { return kg >= 1000 ? (kg / 1000).toFixed(1).replace(".", ",") + " ton" : Math.round(kg) + " kg"; }
   function $(id) { return document.getElementById(id); }
   function el(tag, cls, txt) { var n = document.createElement(tag); if (cls) n.className = cls; if (txt != null) n.textContent = txt; return n; }
+  function setText(id, t) { var n = $(id); if (n) n.textContent = t; }
   function clamp(n, lo, hi) { return Math.min(hi, Math.max(lo, n)); }
+  var endActiveDrag = null; // sätts under pågående slider-drag (för global avbrott)
 
   // --- state --------------------------------------------------------------
   var state = { segment: "brf", typ_id: null, antal: null, timmar_dag: null, elprisomrade: "SE3", _kontext: null };
@@ -61,6 +63,7 @@
     var wrap = el("div", "ampy-calc__slider-wrap");
     var slider = el("div", "ampy-calc__slider"); slider.tabIndex = 0; slider.setAttribute("role", "slider");
     slider.setAttribute("aria-valuemin", o.min); slider.setAttribute("aria-valuemax", o.max);
+    if (o.ariaLabel) slider.setAttribute("aria-label", o.ariaLabel);
     var track = el("div", "ampy-calc__slider-track"), fill = el("div", "ampy-calc__slider-fill"), thumb = el("div", "ampy-calc__slider-thumb");
     slider.appendChild(track); slider.appendChild(fill); slider.appendChild(thumb);
     var ticksEl = el("div", "ampy-calc__slider-ticks");
@@ -84,12 +87,22 @@
       v = Math.round(v * 1000) / 1000;
       value = v; position(v); if (fire) o.onInput(v);
     }
-    function pickByX(cx) { var r = slider.getBoundingClientRect(); var usable = r.width - 24; var frac = clamp((cx - r.left - 12) / usable, 0, 1); return o.min + frac * (o.max - o.min); }
+    // Gutter/thumb i px från faktisk rem (fungerar även om host-sidan ändrar root font-size)
+    var REM = parseFloat(getComputedStyle(document.documentElement).fontSize) || 10;
+    var GUT = 1.2 * REM, THUMB = 2.4 * REM;
+    function pickByX(cx) { var r = slider.getBoundingClientRect(); var usable = Math.max(1, r.width - THUMB); var frac = clamp((cx - r.left - GUT) / usable, 0, 1); return o.min + frac * (o.max - o.min); }
     var drag = false;
-    slider.addEventListener("pointerdown", function (e) { drag = true; dragging = true; try { slider.setPointerCapture(e.pointerId); } catch (x) {} setVal(pickByX(e.clientX), true); });
+    function endDrag() { if (!drag) return; drag = false; dragging = false; endActiveDrag = null; slider.classList.remove("is-dragging"); scheduleRender(); }
+    slider.addEventListener("pointerdown", function (e) {
+      drag = true; dragging = true; endActiveDrag = endDrag; slider.classList.add("is-dragging");
+      try { slider.setPointerCapture(e.pointerId); } catch (x) {}
+      setVal(pickByX(e.clientX), true); e.preventDefault();
+    });
+    slider.addEventListener("blur", endDrag);
     slider.addEventListener("pointermove", function (e) { if (drag) setVal(pickByX(e.clientX), true); });
-    slider.addEventListener("pointerup", function () { drag = false; dragging = false; scheduleRender(); });
-    slider.addEventListener("pointercancel", function () { drag = false; dragging = false; scheduleRender(); });
+    slider.addEventListener("pointerup", endDrag);
+    slider.addEventListener("pointercancel", endDrag);
+    slider.addEventListener("lostpointercapture", endDrag);
     slider.addEventListener("keydown", function (e) {
       if (e.key === "ArrowRight" || e.key === "ArrowUp") { setVal(value + step, true); e.preventDefault(); }
       else if (e.key === "ArrowLeft" || e.key === "ArrowDown") { setVal(value - step, true); e.preventDefault(); }
@@ -110,8 +123,9 @@
         var li = el("li"); var opt = el("button", "ampy-calc__selector-option"); opt.type = "button"; opt.setAttribute("role", "option");
         opt.appendChild(el("span", "name", t.namn));
         opt.appendChild(el("span", "meta", t.w_gammal + " → " + t.w_led + " W"));
-        if (t.id === state.typ_id) { opt.classList.add("ampy-calc__selector-option--selected"); opt.setAttribute("aria-selected", "true"); }
-        opt.onclick = function () { state.typ_id = t.id; closeSel(); updateTypButton(); render(); };
+        opt.setAttribute("aria-selected", t.id === state.typ_id ? "true" : "false");
+        if (t.id === state.typ_id) opt.classList.add("ampy-calc__selector-option--selected");
+        opt.onclick = function () { state.typ_id = t.id; closeSel(true); updateTypButton(); render(); };
         li.appendChild(opt); list.appendChild(li);
       });
     });
@@ -122,7 +136,15 @@
     $("typName").textContent = t ? t.namn : "—";
     $("typMeta").textContent = t ? (t.w_gammal + " → " + t.w_led + " W" + (t.lumen && t.lumen !== "—" ? " · " + t.lumen : "")) : "";
   }
-  function closeSel() { $("typSelector").setAttribute("aria-expanded", "false"); }
+  function openSel(open) {
+    $("typSelector").setAttribute("aria-expanded", String(open));
+    $("typButton").setAttribute("aria-expanded", String(open));
+  }
+  function closeSel(returnFocus) {
+    var wasInside = $("typList").contains(document.activeElement);
+    openSel(false);
+    if ((returnFocus || wasInside) && $("typButton")) $("typButton").focus();
+  }
 
   // --- controls -----------------------------------------------------------
   function buildControls() {
@@ -134,7 +156,7 @@
 
     $("segCaption").textContent = d.seg_caption;
     $("antalLabel").firstChild.nodeValue = "Antal " + plural + " ";
-    $("antalUnit").textContent = plural === "armaturer" ? "st" : "st";
+    $("antalUnit").textContent = "st";
     $("ctaLabel").textContent = d.cta_text;
 
     buildTypSelector();
@@ -150,6 +172,7 @@
     var as = d.antal_slider;
     antalSlider = buildSlider("antalSlider", {
       min: as.min, max: as.max, value: state.antal, step: 1, ticks: as.ticks,
+      ariaLabel: "Antal " + plural,
       format: function (v) { return fmtInt(v); },
       aria: function (v) { return v + " " + plural; },
       onInput: function (v) { state.antal = v; $("antalValue").textContent = fmtInt(v); scheduleRender(); }
@@ -158,6 +181,7 @@
     // brinntid slider
     brinntidSlider = buildSlider("brinntidSlider", {
       min: 0, max: 24, value: state.timmar_dag, step: 0.5, ticks: [0, 6, 12, 18, 24],
+      ariaLabel: "Brinntid, timmar per dygn",
       format: function (v) { return fmtYears(v) + " h"; },
       aria: function (v) { return fmtYears(v) + " timmar per dygn"; },
       onInput: function (v) { state.timmar_dag = v; $("brinntidValue").textContent = fmtYears(v); scheduleRender(); }
@@ -179,6 +203,7 @@
   function renderError() {
     setText("heroValue", "—");
     ["statKwh", "statB", "statCost"].forEach(function (id) { setText(id, "—"); });
+    setText("heroSub", "Kunde inte räkna just nu — testa att ladda om eller justera dina värden.");
     track("calc_error", { segment: state.segment, typ_id: state.typ_id });
   }
 
@@ -211,7 +236,7 @@
       statBLabel.textContent = "CO₂ du sparar";
       statB.textContent = ton ? (r.co2_kg_ar / 1000).toFixed(1).replace(".", ",") : fmtInt(r.co2_kg_ar);
       statBUnit.textContent = ton ? "ton/år" : "kg/år";
-      statBSub.textContent = "nordisk residualmix (ESG)";
+      statBSub.textContent = "jämfört med nordisk elmix";
     } else {
       statBLabel.textContent = "Per månad";
       statB.textContent = fmtKr(r.arlig_besparing / 12);
@@ -232,7 +257,7 @@
     $("costLed").textContent = fmtKr(costLed) + " kr";
     var max = costNow > 0 ? costNow : 1;
     $("barNow").style.width = "100%";
-    $("barLed").style.width = (costLed / max * 100) + "%";
+    $("barLed").style.width = Math.max(4, costLed / max * 100) + "%"; // syns även när besparingen är störst
     var pct = costNow > 0 ? Math.round((1 - costLed / costNow) * 100) : 0;
     $("compareCaption").innerHTML = "LED drar <strong>" + pct + " % mindre</strong> — skillnaden är din besparing.";
   }
@@ -248,16 +273,15 @@
       ["Årlig besparing", "(W_före − W_efter) ÷ 1000 × h/dygn × 365 × antal × elpris", "Ren aritmetik på tal du själv ser och kan justera."],
       ["Energi du kapar", "(W_före − W_efter) ÷ 1000 × h/dygn × 365 × antal", "Minskningen i elförbrukning (kWh/år) — samma procent som i före/efter-jämförelsen."]
     ];
-    if (!privat) items.push(["CO₂ du sparar", "sparad kWh/år × 464,79 g ÷ 1000 → kg", "Nordisk residualmix (ESG, Energimarknadsinspektionen 2024). Visas aldrig för privatpersoner som fysiska utsläpp."]);
+    if (!privat) items.push(["CO₂ du sparar", "sparad kWh/år × 464,79 g ÷ 1000 → kg", "Faktorn 464,79 g/kWh är nordisk residualmix (marknadsbaserad, Scope 2 / ESG; Energimarknadsinspektionen 2024). Visas aldrig för privatpersoner som fysiska utsläpp."]);
     items.push(["Uppskattad kostnad", "pris per " + unit + " × antal", "Material och installation ingår i priset."]);
-    items.push(["Payback-tid", "kostnad ÷ årlig besparing", "Ungefärlig tid till break-even — exakt siffra i offerten."]);
     items.forEach(function (it) {
       var box = el("div", "ampy-calc__methodology-item");
       box.appendChild(el("h3", null, it[0])); box.appendChild(el("code", null, it[1])); box.appendChild(el("p", null, it[2]));
       stack.appendChild(box);
     });
     var disc = $("disclaimers"); disc.textContent = "";
-    disc.appendChild(el("p", null, "* " + (DATA.avdrag_copy[state.segment] || "")));
+    disc.appendChild(el("p", null, DATA.avdrag_copy[state.segment] || ""));
     disc.appendChild(el("p", null, "Elpris: medvetet lågt schablonpris per elprisområde (SE1–SE4). Watt-, kostnads- och timantaganden är konservativt valda. Källor: research-dossier (2026)."));
   }
 
@@ -268,7 +292,7 @@
         if (btn.dataset.seg === state.segment) return;
         state.segment = btn.dataset.seg; setSegmentDefaults();
         track("segment_byte", { segment: state.segment });
-        buildControls(); render();
+        resetLead(); buildControls(); render();
       };
     });
     document.querySelectorAll("#segRegion button").forEach(function (btn) {
@@ -284,15 +308,77 @@
       render();
     };
     // selector open/close
-    $("typButton").onclick = function (e) { e.stopPropagation(); var s = $("typSelector"); s.setAttribute("aria-expanded", String(s.getAttribute("aria-expanded") !== "true")); };
-    document.addEventListener("click", function (e) { if (!$("typSelector").contains(e.target)) closeSel(); });
-    document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeSel(); });
-    // CTA
+    $("typButton").setAttribute("aria-controls", "typList");
+    $("typButton").setAttribute("aria-expanded", "false");
+    $("typButton").onclick = function (e) { e.stopPropagation(); openSel($("typSelector").getAttribute("aria-expanded") !== "true"); };
+    document.addEventListener("click", function (e) { if (!$("typSelector").contains(e.target)) closeSel(false); });
+    document.addEventListener("keydown", function (e) { if (e.key === "Escape" && $("typSelector").getAttribute("aria-expanded") === "true") closeSel(true); });
+    // CTA → fäll ut lead-formuläret (ersätter knappen; en primär kvar)
     $("ctaBtn").onclick = function () {
       track("cta_klick", { segment: state.segment, besparing: bucket((lastResult || {}).arlig_besparing || 0) });
-      var url = DATA.cta && DATA.cta.url; if (url) window.open(url, "_blank", "noopener");
+      $("ctaBtn").classList.add("is-hidden");
+      $("leadForm").classList.remove("is-hidden");
+      var f = $("leadNamn"); if (f) f.focus({ preventScroll: true });
+      $("leadForm").scrollIntoView({ behavior: prefersReduced ? "auto" : "smooth", block: "nearest" });
     };
+    $("leadForm").onsubmit = function (e) {
+      e.preventDefault();
+      var btn = $("leadSubmit");
+      if (btn.disabled) return;             // dubbel-submit-skydd
+      if ($("leadHp").value) return;        // honeypot
+      ["leadNamn", "leadEpost", "leadConsent"].forEach(function (id) { var n = $(id); n.classList.remove("is-invalid"); n.removeAttribute("aria-invalid"); });
+      var namn = $("leadNamn").value.trim(), epost = $("leadEpost").value.trim();
+      function invalid(id, msg) { var n = $(id); n.classList.add("is-invalid"); n.setAttribute("aria-invalid", "true"); leadMsg(false, msg); n.focus(); }
+      if (!namn) { invalid("leadNamn", "Fyll i ditt namn."); return; }
+      if (epost.indexOf("@") < 1 || epost.indexOf(".") < 0) { invalid("leadEpost", "Fyll i en giltig e-postadress."); return; }
+      if (!$("leadConsent").checked) { $("leadConsent").classList.add("is-invalid"); leadMsg(false, "Du behöver godkänna att vi får kontakta dig."); $("leadConsent").focus(); return; }
+      var payload = {
+        segment: state.segment, namn: namn, epost: epost,
+        telefon: $("leadTel").value.trim(), postnummer: $("leadPostnr").value.trim(),
+        typ_id: state.typ_id, antal: state.antal, timmar_dag: state.timmar_dag, elprisomrade: state.elprisomrade,
+        arlig_besparing: Math.round((lastResult || {}).arlig_besparing || 0),
+        uppskattad_kostnad: Math.round(((lastResult || {}).breakdown || {}).total_led_kostnad || 0),
+        samtycke: true, samtycke_tid: nowIso()
+      };
+      track("lead_submit", { segment: state.segment, besparing: bucket(payload.arlig_besparing) });
+      btn.disabled = true; btn.textContent = "Skickar…";
+      var done = function () { leadMsg(true, "Tack " + namn.split(" ")[0] + "! Vår belysningsexpert hör av sig inom kort."); btn.textContent = "Skickat ✓"; };
+      var fail = function () { leadMsg(false, "Kunde inte skicka just nu. Försök igen, eller mejla offert@ampy.se."); btn.disabled = false; btn.textContent = "Skicka offertförfrågan"; track("lead_error", { segment: state.segment }); };
+      var ep = DATA.lead && DATA.lead.endpoint;
+      if (ep) {
+        fetch(ep, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
+          .then(function (res) { if (!res.ok) { fail(); return; } done(); }).catch(fail);
+      } else if (DATA.lead && DATA.lead.fallback_mailto) {
+        try { window.location.href = buildMailto(payload, DATA.lead.fallback_mailto); } catch (x) {}
+        done();
+      } else { fail(); }
+    };
+    ["leadNamn", "leadEpost"].forEach(function (id) { $(id).addEventListener("input", function () { this.classList.remove("is-invalid"); this.removeAttribute("aria-invalid"); }); });
+    $("leadConsent").addEventListener("change", function () { this.classList.remove("is-invalid"); });
     wireTooltips();
+  }
+
+  function nowIso() { try { return new Date().toISOString(); } catch (e) { return ""; } }
+  function buildMailto(p, to) {
+    var rad = function (k, v) { return (v || v === 0) ? (k + ": " + v + "\n") : ""; };
+    var body = "Offertförfrågan – LED\n\n" +
+      rad("Segment", p.segment) + rad("Namn", p.namn) + rad("E-post", p.epost) +
+      rad("Telefon", p.telefon) + rad("Postnummer", p.postnummer) +
+      "\nScenario:\n" + rad("Ljuskälla", p.typ_id) + rad("Antal", p.antal) +
+      rad("Brinntid", p.timmar_dag + " h/dygn") + rad("Elprisområde", p.elprisomrade) +
+      rad("Årlig besparing", group(p.arlig_besparing) + " kr/år") + rad("Uppskattad kostnad", group(p.uppskattad_kostnad) + " kr");
+    return "mailto:" + to + "?subject=" + encodeURIComponent("Offertförfrågan LED – " + p.namn) + "&body=" + encodeURIComponent(body);
+  }
+
+  function leadMsg(ok, text) {
+    var m = $("leadMsg"); m.textContent = text;
+    m.className = "ampy-calc__lead-msg " + (ok ? "ampy-calc__lead-msg--ok" : "ampy-calc__lead-msg--err");
+  }
+  function resetLead() {
+    var f = $("leadForm"); if (!f) return;
+    f.classList.add("is-hidden"); $("ctaBtn").classList.remove("is-hidden");
+    $("leadSubmit").disabled = false; $("leadSubmit").textContent = "Skicka offertförfrågan";
+    var m = $("leadMsg"); m.className = "ampy-calc__lead-msg is-hidden"; m.textContent = "";
   }
 
   // Flytande info-tooltip (visas vid hover/fokus/tap på "i"-knappar)
@@ -312,13 +398,17 @@
     }
     function hide() { current = null; tip.style.display = "none"; }
     document.querySelectorAll(".ampy-calc__tip").forEach(function (btn) {
+      btn.setAttribute("aria-label", btn.dataset.tip || "Mer info"); // hela texten är knappens namn för skärmläsare
       btn.addEventListener("mouseenter", function () { show(btn); });
       btn.addEventListener("mouseleave", hide);
       btn.addEventListener("focus", function () { show(btn); });
       btn.addEventListener("blur", hide);
-      btn.addEventListener("click", function (e) { e.preventDefault(); if (current === btn) hide(); else show(btn); });
+      btn.addEventListener("click", function (e) { e.preventDefault(); e.stopPropagation(); if (current === btn) hide(); else show(btn); });
     });
     window.addEventListener("scroll", hide, true);
+    window.addEventListener("resize", hide);
+    window.addEventListener("orientationchange", hide);
+    document.addEventListener("click", function (e) { if (current && !(e.target.classList && e.target.classList.contains("ampy-calc__tip"))) hide(); });
   }
 
   // --- telemetri ----------------------------------------------------------
@@ -332,12 +422,22 @@
   }
   function bucket(n) { n = Math.round(n) || 0; return n < 10000 ? "<10k" : n < 50000 ? "10-50k" : n < 150000 ? "50-150k" : "150k+"; }
   var berakningTimer = null;
-  function trackBerakning(r) { if (berakningTimer) clearTimeout(berakningTimer); berakningTimer = setTimeout(function () { track("berakning", { segment: state.segment, besparing_spann: bucket(r.arlig_besparing) }); }, 600); }
+  function trackBerakning(r) {
+    if (berakningTimer) clearTimeout(berakningTimer);
+    berakningTimer = setTimeout(function () {
+      track("berakning", { segment: state.segment, besparing_spann: bucket(r.arlig_besparing) });
+      // En lugn sammanfattning till skärmläsare (en gång per settle, ej per drag-frame)
+      setText("resultSummary", "Årlig besparing " + fmtKr(r.arlig_besparing) + " kronor per år.");
+    }, 600);
+  }
   function track(name, props) { try { window.dataLayer = window.dataLayer || []; window.dataLayer.push(Object.assign({ event: "led_" + name }, meta, props || {})); } catch (e) {} }
 
   // --- init ---------------------------------------------------------------
   function init() {
     captureMeta(); applyPreset(); wireStatic(); buildControls(); render();
+    // Avbryt strandad slider-drag om sidan tappar fokus/döljs (iOS-avbrott)
+    window.addEventListener("blur", function () { if (endActiveDrag) endActiveDrag(); });
+    document.addEventListener("visibilitychange", function () { if (document.hidden && endActiveDrag) endActiveDrag(); });
     track("calc_view", { segment: state.segment, elprisomrade: state.elprisomrade });
   }
   if (document.readyState !== "loading") init();

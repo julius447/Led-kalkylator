@@ -35,7 +35,9 @@ window.AMPY_LED_DATA = {
 
   /* CTA pekar mot offert-/hjälp-flöde på destinationssidan (värde först, ingen vägg) */
   cta: { url: null }, // sätts vid Bricks-transplant; null = spåra klick (prototyp)
-  lankar: { las_mer: "https://ampy.se/led-konvertering/", maila_endpoint: null },
+  // Offertförfrågan: sätt endpoint till en riktig POST-URL före produktion.
+  // Tills dess används mailto-fallback så inget lead tappas.
+  lead: { endpoint: null, fallback_mailto: "offert@ampy.se" },
 
   /* --- Prissättning (offert) — kostnad_kr = total per armatur INKL installation ---
      Bekräftat av Ampys bokare/elektriker:
