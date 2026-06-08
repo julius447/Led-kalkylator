@@ -114,9 +114,9 @@ window.AMPY_LED_DATA = {
 
   /* --- Avdragsklausul per segment (försiktigt, inga falska avdrag) ----------- */
   avdrag_copy: {
-    foretag: "Uppskattad kostnad per armatur inkl. installation, ex moms. Exakt pris i offerten.",
-    brf:     "Uppskattad kostnad per armatur inkl. installation, ex moms. Exakt pris i offerten.",
-    privat:  "Uppskattad kostnad per ljuskälla inkl. installation och moms, efter ROT-avdrag. Exakt pris i offerten."
+    foretag: "Priser är ex moms och inkl. installation. Exakt pris får du i offerten.",
+    brf:     "Priser är ex moms och inkl. installation. Exakt pris får du i offerten.",
+    privat:  "Priser är inkl. moms och installation, efter ROT-avdrag (30 % på arbetet). Exakt pris får du i offerten."
   },
 
   /* --- Lysrörskrok (endast Företag/BRF) -------------------------------------- */

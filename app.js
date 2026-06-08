@@ -243,12 +243,13 @@
     if (stack.dataset.seg === state.segment && stack.children.length) { return; } // statisk per segment
     stack.dataset.seg = state.segment; stack.textContent = "";
     var privat = state.segment === "privat";
+    var unit = privat ? "ljuskälla" : "armatur";
     var items = [
       ["Årlig besparing", "(W_före − W_efter) ÷ 1000 × h/dygn × 365 × antal × elpris", "Ren aritmetik på tal du själv ser och kan justera."],
-      ["Energi du kapar", "sparad effekt × drifttimmar per år", "Skillnaden i förbrukning före och efter bytet — det som visas i före/efter-jämförelsen."],
-      ["Uppskattad kostnad", "pris per " + (privat ? "ljuskälla" : "armatur") + " × antal", "Total kostnad inkl. installation. " + (DATA.avdrag_copy[state.segment] || "")]
+      ["Energi du kapar", "(W_före − W_efter) ÷ 1000 × h/dygn × 365 × antal", "Minskningen i elförbrukning (kWh/år) — samma procent som i före/efter-jämförelsen."]
     ];
-    if (!privat) items.push(["CO₂ du sparar", "sparad kWh × 464,79 g", "Nordisk residualmix (ESG, Energimarknadsinspektionen 2024). Visas aldrig för privatpersoner som fysiska utsläpp."]);
+    if (!privat) items.push(["CO₂ du sparar", "sparad kWh/år × 464,79 g ÷ 1000 → kg", "Nordisk residualmix (ESG, Energimarknadsinspektionen 2024). Visas aldrig för privatpersoner som fysiska utsläpp."]);
+    items.push(["Uppskattad kostnad", "pris per " + unit + " × antal", "Material och installation ingår i priset."]);
     items.push(["Payback-tid", "kostnad ÷ årlig besparing", "Ungefärlig tid till break-even — exakt siffra i offerten."]);
     items.forEach(function (it) {
       var box = el("div", "ampy-calc__methodology-item");
