@@ -330,11 +330,13 @@
       var btn = $("leadSubmit");
       if (btn.disabled) return;             // dubbel-submit-skydd
       if ($("leadHp").value) return;        // honeypot
-      ["leadNamn", "leadEpost", "leadConsent"].forEach(function (id) { var n = $(id); n.classList.remove("is-invalid"); n.removeAttribute("aria-invalid"); });
+      ["leadNamn", "leadEpost", "leadTel", "leadPostnr", "leadConsent"].forEach(function (id) { var n = $(id); n.classList.remove("is-invalid"); n.removeAttribute("aria-invalid"); });
       var namn = $("leadNamn").value.trim(), epost = $("leadEpost").value.trim();
       function invalid(id, msg) { var n = $(id); n.classList.add("is-invalid"); n.setAttribute("aria-invalid", "true"); leadMsg(false, msg); n.focus(); }
       if (!namn) { invalid("leadNamn", "Fyll i ditt namn."); return; }
       if (epost.indexOf("@") < 1 || epost.indexOf(".") < 0) { invalid("leadEpost", "Fyll i en giltig e-postadress."); return; }
+      if (!$("leadTel").value.trim()) { invalid("leadTel", "Fyll i ditt telefonnummer."); return; }
+      if (!$("leadPostnr").value.trim()) { invalid("leadPostnr", "Fyll i ditt postnummer."); return; }
       if (!$("leadConsent").checked) { $("leadConsent").classList.add("is-invalid"); leadMsg(false, "Du behöver godkänna att vi får kontakta dig."); $("leadConsent").focus(); return; }
       var payload = {
         segment: state.segment, namn: namn, epost: epost,
@@ -357,7 +359,7 @@
         done();
       } else { fail(); }
     };
-    ["leadNamn", "leadEpost"].forEach(function (id) { $(id).addEventListener("input", function () { this.classList.remove("is-invalid"); this.removeAttribute("aria-invalid"); }); });
+    ["leadNamn", "leadEpost", "leadTel", "leadPostnr"].forEach(function (id) { $(id).addEventListener("input", function () { this.classList.remove("is-invalid"); this.removeAttribute("aria-invalid"); }); });
     $("leadConsent").addEventListener("change", function () { this.classList.remove("is-invalid"); });
     wireTooltips();
   }

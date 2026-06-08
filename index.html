@@ -24,7 +24,6 @@
 
       <header class="ampy-calc__header">
         <h1>Vad sparar du på att byta till LED?</h1>
-        <p>Räkna transparent vad bytet ger — konservativt räknat.</p>
       </header>
 
       <div class="ampy-calc__main">
@@ -36,7 +35,7 @@
 
             <div class="ampy-calc__field">
               <span class="ampy-calc__field-label-tiny">Vem räknar vi för?
-                <button type="button" class="ampy-calc__tip" data-tip="BRF, företag och privatperson räknas olika — vi anpassar armaturtyp, brinntid och pris efter vem du är.">i</button>
+                <button type="button" class="ampy-calc__tip" data-tip="BRF, företag och privatperson räknas olika — vi anpassar armaturtyp, brinntid och pris efter din profil.">i</button>
               </span>
               <div class="ampy-calc__segmented" role="group" aria-label="Segment" id="segSegment">
                 <button type="button" class="ampy-calc__segmented-option" data-seg="brf" aria-pressed="true">BRF</button>
@@ -177,12 +176,12 @@
                     <input id="leadEpost" name="epost" type="email" autocomplete="email" inputmode="email" maxlength="120" aria-required="true" aria-describedby="leadMsg" required />
                   </div>
                   <div class="ampy-calc__lead-field">
-                    <label for="leadTel">Telefon <span class="ampy-calc__lead-optional">(frivilligt)</span></label>
-                    <input id="leadTel" name="telefon" type="tel" autocomplete="tel" inputmode="tel" maxlength="20" />
+                    <label for="leadTel">Telefon</label>
+                    <input id="leadTel" name="telefon" type="tel" autocomplete="tel" inputmode="tel" maxlength="20" aria-required="true" aria-describedby="leadMsg" required />
                   </div>
                   <div class="ampy-calc__lead-field">
-                    <label for="leadPostnr">Postnummer <span class="ampy-calc__lead-optional">(frivilligt)</span></label>
-                    <input id="leadPostnr" name="postnummer" type="text" inputmode="numeric" autocomplete="postal-code" maxlength="6" />
+                    <label for="leadPostnr">Postnummer</label>
+                    <input id="leadPostnr" name="postnummer" type="text" inputmode="numeric" autocomplete="postal-code" maxlength="6" aria-required="true" aria-describedby="leadMsg" required />
                   </div>
                 </div>
                 <div class="ampy-calc__hp" aria-hidden="true">
