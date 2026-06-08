@@ -108,6 +108,12 @@
     var visaCo2 = !!segConf.visa_co2;
     var co2KgAr = visaCo2 ? (kwhArTotal * data.co2_faktor.g_per_kwh) / 1000 : null;
 
+    // --- Kumulativ kassaflödeskurva (år 0..H): besparing × år − kostnad ---
+    var HORISONT = (data.horisont_ar && data.horisont_ar > 0) ? data.horisont_ar : 15;
+    var cumulative = [];
+    for (var y = 0; y <= HORISONT; y++) cumulative.push(arligBesparing * y - totalLedKostnad);
+    var nettoHorisont = cumulative[HORISONT];
+
     return {
       inputs: { segment: inputs.segment, typ_id: typ.id, antal: antal, timmar_dag: hDag, elprisomrade: inputs.elprisomrade, kr_kwh: krKwh },
       // Hjälte + stödtrio (full precision; renderaren avrundar)
@@ -117,6 +123,9 @@
       besparing_10ar: besparing10ar,
       co2_kg_ar: co2KgAr,
       visa_co2: visaCo2,
+      horisont_ar: HORISONT,
+      cumulative: cumulative,            // [år0..H] netto kr (för payback-kurvan)
+      netto_horisont: nettoHorisont,     // netto kr vid horisonten (hjälte-siffra)
       // Spårbara mellanled för transparent breakdown ("Så har vi räknat")
       breakdown: {
         w_gammal: typ.w_gammal,

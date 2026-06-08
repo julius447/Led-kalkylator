@@ -30,8 +30,12 @@ window.AMPY_LED_DATA = {
 
   limits: { antal_max: 100000 },
 
+  /* Horisont för kumulativ besparing + payback-kurva (LED-armaturer håller länge) */
+  horisont_ar: 15,
+
   /* CTA pekar mot offert-/hjälp-flöde på destinationssidan (värde först, ingen vägg) */
   cta: { url: null }, // sätts vid Bricks-transplant; null = spåra klick (prototyp)
+  lankar: { las_mer: "https://ampy.se/led-konvertering/", maila_endpoint: null },
 
   /* --- Ljuskällor ("vad byter du från?") — kat styr segment, grupp = optgroup
      kat: "privat" (DIY, installation 0) | "kommersiell" (Företag + BRF, armaturbyte) */
@@ -110,21 +114,21 @@ window.AMPY_LED_DATA = {
   defaults: {
     brf: {
       antal: 80, typ_id: "t8_2x36", kontext: "Trapphus — alltid på",
-      hero_label: "Sänkt driftskostnad per år",
+      antal_slider: { min: 1, max: 400, ticks: [40, 80, 160, 280, 400] },
       seg_caption: "Vi räknar för föreningens gemensamma belysning.",
-      cta_text: "Få offert på LED-konvertering"
+      enhet_namn: "armaturer", cta_text: "Få offert på LED-konvertering"
     },
     foretag: {
       antal: 30, typ_id: "t8_2x36", kontext: "Kontor",
-      hero_label: "Sänkt driftskostnad per år",
+      antal_slider: { min: 1, max: 200, ticks: [10, 30, 75, 125, 200] },
       seg_caption: "Vi räknar för verksamhetens belysning.",
-      cta_text: "Få offert på LED-konvertering"
+      enhet_namn: "armaturer", cta_text: "Få offert på LED-konvertering"
     },
     privat: {
       antal: 15, typ_id: "gu10_50", kontext: "Hem / vardagsrum (primär armatur)",
-      hero_label: "Sänkt elkostnad per år",
+      antal_slider: { min: 1, max: 60, ticks: [5, 15, 30, 45, 60] },
       seg_caption: "Vi räknar för belysningen i ditt hem.",
-      cta_text: "Få hjälp att byta till LED"
+      enhet_namn: "ljuskällor", cta_text: "Få hjälp att byta till LED"
     }
   },
 

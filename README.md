@@ -32,6 +32,15 @@ Verktyget **öppnar i Företag-läge** fristående; embed-preset (`data-sida`) s
 ## Ärlighet = moat (Del 6)
 Transparent matematik med användarens egna tal, synlig osäkerhet, justerbara antaganden, **inga falska avdrag**, CO2 endast Företag/BRF med angiven metod. Hjälte-siffra och payback härleds ur *samma* värde.
 
+## Vol.4 — matchar batterikalkylatorns design (2026-06-08)
+På begäran portad till **samma layout och designsystem som Ampys batterikalkylator** (`Battery-calculator/index.html`). En agent extraherade batterikalkylatorns exakta designblueprint (tokens, komponenter, SVG-chart) som sedan implementerades:
+- **Layout vänd:** inputs i vänster vitt kort, resultat i höger mörkt navy-kort (med brand-glow-gradient) — som batteriet.
+- **Designsystem antaget:** `html{font-size:62.5%}` (1rem=10px), tokens på `.ampy-calc`, BEM `ampy-calc__*`, samma färger/spacing/radius/typskala/fonter.
+- **Komponenter:** segment- + SE1–SE4-segmented controls, custom slider med ticks (antal + brinntid), grupperad ljuskälle-dropdown (selector-card), stat-trio (Att betala / Årlig besparing / Payback-tid), energi-bar (före→efter), **payback-kurva** (SVG: amber före break-even → teal efter, break-even-markör, slutvärde), CTA + "Maila kalkylen" + "Läs mer", "Så har vi räknat".
+- **Hjälte** = "Sparar på 15 år" (kumulativ netto), count-up-animation med rAF + setTimeout-skyddsnät.
+- LED-anpassningar: payback & kostnad återinförda (centrala i batterilayouten); CO₂→kr/månad-swap för Privat behållen (doktrin); elpris styrs av SE1–SE4 (ingen redigerbar slider).
+- Motorn ger nu `cumulative[]` (16 år) för kurvan. engine.test.js **27/27 gröna**. Verifierat desktop (alla segment + dropdown) + mobil 390px, inga konsolfel.
+
 ## Vol.3 — total designomgörning (2026-06-06)
 En designdriven omgörning: research-agent + tre konkurrerande **kompletta designriktningar** + en designdirektör som valde och syntetiserade **en** sammanhängande spec ("Composed confidence" — Swiss restraint + varm röst + källad ärlighet). Full spec i `VOL3-SPEC.md`. Vad som ändrades mot vol.2:
 - **Segment-toggle** flyttad in i högerkortet (mindre), ordning **BRF → Företag → Privatperson**, öppnar på BRF. "Dina värden"-etiketten borttagen.
