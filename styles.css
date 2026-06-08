@@ -363,6 +363,25 @@ html { font-size: 62.5%; }
 .ampy-calc__methodology-item code { align-self: flex-start; font-family: var(--font-mono); background: var(--bg-subtle); padding: 0.2rem var(--spacing-xs); border-radius: var(--radius-sm); color: var(--text-primary); font-weight: 600; font-size: var(--fs-xs); }
 .ampy-calc__disclaimers { margin-top: var(--spacing-md); padding-top: var(--spacing-md); border-top: 1px solid var(--border-default); color: var(--text-secondary); font-size: var(--fs-xs); line-height: 1.55; display: flex; flex-direction: column; gap: var(--spacing-sm); }
 
+/* --- Före/efter-jämförelse (elkostnad per år) ----------------------------- */
+.ampy-calc__compare { display: flex; flex-direction: column; gap: var(--spacing-sm); }
+.ampy-calc__compare-row { display: flex; align-items: center; gap: var(--spacing-md); }
+.ampy-calc__compare-key { width: 6rem; flex-shrink: 0; font-size: var(--fs-xs); color: var(--on-surface-text-muted); }
+.ampy-calc__compare-track { flex: 1; height: 2.4rem; background: var(--on-surface-subtle-bg); border-radius: var(--radius-full); overflow: hidden; }
+.ampy-calc__compare-bar { display: block; height: 100%; border-radius: var(--radius-full); transition: width var(--motion-normal) var(--easing); }
+.ampy-calc__compare-bar--now { background: var(--chart-line-loss); }
+.ampy-calc__compare-bar--led { background: var(--state-success); }
+.ampy-calc__compare-val { width: 9rem; flex-shrink: 0; text-align: right; font-size: var(--fs-sm); font-weight: 600; color: var(--text-inverse); }
+
+/* --- Info-tooltip (flytande) ---------------------------------------------- */
+.ampy-calc__tooltip {
+  position: fixed; z-index: 100; pointer-events: none;
+  background: var(--bg-surface); color: var(--text-inverse);
+  font-family: var(--font-body); font-size: var(--fs-xs); line-height: 1.45;
+  padding: var(--spacing-sm) var(--spacing-md); border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-lg); border: 1px solid var(--on-surface-border-strong);
+}
+
 /* --- Animationer / första-paint reveal ------------------------------------ */
 @keyframes ampy-reveal { from { opacity: 0; transform: translateY(0.6rem); } to { opacity: 1; transform: none; } }
 @keyframes ampy-draw { to { stroke-dashoffset: 0; } }

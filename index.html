@@ -33,7 +33,9 @@
             <span class="ampy-calc__tier-label">Vad du byter</span>
 
             <div class="ampy-calc__field">
-              <span class="ampy-calc__field-label-tiny">Vem räknar vi för?</span>
+              <span class="ampy-calc__field-label-tiny">Vem räknar vi för?
+                <button type="button" class="ampy-calc__tip" data-tip="BRF, företag och privatperson räknas olika — vi anpassar armaturtyp, brinntid och pris efter vem du är.">i</button>
+              </span>
               <div class="ampy-calc__segmented" role="group" aria-label="Segment" id="segSegment">
                 <button type="button" class="ampy-calc__segmented-option" data-seg="brf" aria-pressed="true">BRF</button>
                 <button type="button" class="ampy-calc__segmented-option" data-seg="foretag" aria-pressed="false">Företag</button>
@@ -43,7 +45,9 @@
             </div>
 
             <div class="ampy-calc__field ampy-calc__field--prominent">
-              <label class="ampy-calc__field-label-tiny" id="typLabel">Vad byter du från?</label>
+              <label class="ampy-calc__field-label-tiny" id="typLabel">Vad byter du från?
+                <button type="button" class="ampy-calc__tip" data-tip="Välj din nuvarande ljuskälla. Vi jämför mot en likvärdig LED-ersättning med samma ljus.">i</button>
+              </label>
               <div class="ampy-calc__selector" id="typSelector" aria-expanded="false">
                 <button type="button" class="ampy-calc__selector-button" id="typButton" aria-haspopup="listbox">
                   <span class="ampy-calc__selector-img">
@@ -60,7 +64,9 @@
             </div>
 
             <div class="ampy-calc__field ampy-calc__field--prominent">
-              <label class="ampy-calc__field-label-tiny" id="antalLabel">Antal armaturer</label>
+              <label class="ampy-calc__field-label-tiny" id="antalLabel">Antal armaturer
+                <button type="button" class="ampy-calc__tip" data-tip="Hur många armaturer eller ljuskällor bytet gäller. Dra i reglaget eller klicka på en siffra.">i</button>
+              </label>
               <span class="ampy-calc__value-prominent ampy-calc__t-mono">
                 <span id="antalValue">—</span><span class="ampy-calc__value-unit" id="antalUnit">st</span>
               </span>
@@ -72,13 +78,15 @@
             <span class="ampy-calc__tier-label">Din situation</span>
 
             <div class="ampy-calc__field">
-              <label class="ampy-calc__field-label" for="inKontext">Var sitter belysningen?</label>
+              <label class="ampy-calc__field-label" for="inKontext">Var sitter belysningen?
+                <button type="button" class="ampy-calc__tip" data-tip="Styr brinntiden. ”Snitt brinntid” är ett genomsnitt över alla armaturer — bra när bytet omfattar flera utrymmen.">i</button>
+              </label>
               <select class="ampy-calc__select" id="inKontext"></select>
             </div>
 
             <div class="ampy-calc__field ampy-calc__field--prominent">
               <label class="ampy-calc__field-label-tiny">Brinntid
-                <button type="button" class="ampy-calc__tip" data-tip="Hur många timmar per dygn belysningen är tänd, i snitt över året.">i</button>
+                <button type="button" class="ampy-calc__tip" data-tip="Timmar per dygn som belysningen lyser, i snitt över året. ”Snitt brinntid” tar ett genomsnitt över alla armaturer i olika utrymmen.">i</button>
               </label>
               <span class="ampy-calc__value-prominent ampy-calc__t-mono" style="font-size:var(--fs-md);">
                 <span id="brinntidValue">—</span><span class="ampy-calc__value-unit">h/dygn</span>
@@ -88,7 +96,7 @@
 
             <div class="ampy-calc__field">
               <label class="ampy-calc__field-label">Elprisområde
-                <button type="button" class="ampy-calc__tip" data-tip="Vi använder ett medvetet lågt schablonpris per område — din verkliga besparing blir snarare högre.">i</button>
+                <button type="button" class="ampy-calc__tip" data-tip="Vi använder ett medvetet lågt schablonpris per område (SE1–SE4) — din verkliga besparing blir snarare högre.">i</button>
               </label>
               <div class="ampy-calc__segmented" role="group" aria-label="Elprisområde" id="segRegion">
                 <button type="button" class="ampy-calc__segmented-option" data-region="SE1" aria-pressed="false">SE1</button>
@@ -105,72 +113,50 @@
           <section class="ampy-calc__card ampy-calc__card--surface" aria-live="polite" aria-label="Resultat">
 
             <div class="ampy-calc__hero">
-              <span class="ampy-calc__hero-eyebrow" id="heroEyebrow">Sparar på 15 år</span>
+              <span class="ampy-calc__hero-eyebrow">Årlig besparing</span>
               <span class="ampy-calc__hero-value ampy-calc__t-mono">
-                <span id="heroValue">—</span><span class="ampy-calc__hero-unit">kr</span>
+                <span id="heroValue">—</span><span class="ampy-calc__hero-unit">kr/år</span>
               </span>
-              <span class="ampy-calc__hero-sub" id="heroSub">Total besparing över 15 år, minus vad bytet kostar.</span>
+              <span class="ampy-calc__hero-sub" id="heroSub">Så mycket lägre blir elkostnaden — varje år, år efter år.</span>
             </div>
 
             <div class="ampy-calc__trio">
-              <span class="ampy-calc__trio-label">Att betala<sup>*</sup></span>
+              <span class="ampy-calc__trio-label">Energi du kapar</span>
+              <span class="ampy-calc__trio-value ampy-calc__t-mono"><span id="statKwh">—</span><span class="ampy-calc__trio-unit">kWh/år</span></span>
+              <span class="ampy-calc__trio-sub" id="statKwhSub">—</span>
+
+              <span class="ampy-calc__trio-label" id="statBLabel">CO₂ du sparar</span>
+              <span class="ampy-calc__trio-value ampy-calc__t-mono"><span id="statB">—</span><span class="ampy-calc__trio-unit" id="statBUnit">/år</span></span>
+              <span class="ampy-calc__trio-sub" id="statBSub">—</span>
+
+              <span class="ampy-calc__trio-label">Uppskattad kostnad<sup>*</sup></span>
               <span class="ampy-calc__trio-value ampy-calc__t-mono"><span id="statCost">—</span><span class="ampy-calc__trio-unit">kr</span></span>
               <span class="ampy-calc__trio-sub" id="statCostSub">—</span>
-
-              <span class="ampy-calc__trio-label">Årlig besparing</span>
-              <span class="ampy-calc__trio-value ampy-calc__t-mono"><span id="statAnnual">—</span><span class="ampy-calc__trio-unit">kr/år</span></span>
-              <span class="ampy-calc__trio-sub" id="statAnnualSub">—</span>
-
-              <span class="ampy-calc__trio-label">Payback-tid</span>
-              <span class="ampy-calc__trio-value ampy-calc__t-mono"><span id="statPayback">—</span><span class="ampy-calc__trio-unit">år</span></span>
-              <span class="ampy-calc__trio-sub">till break-even</span>
             </div>
 
             <hr class="ampy-calc__internal-divider" />
 
-            <div class="ampy-calc__evidence">
-              <span class="ampy-calc__evidence-label" id="energyLabel">Så mycket energi kapar du</span>
-              <div class="ampy-calc__streams-bar" id="energyBar" role="img" aria-label="Energi före och efter"></div>
-              <p class="ampy-calc__evidence-caption" id="energyCaption">—</p>
-            </div>
-
-            <hr class="ampy-calc__internal-divider" />
-
-            <div class="ampy-calc__chart-block">
-              <span class="ampy-calc__evidence-label">Payback-kurva</span>
-              <div class="ampy-calc__chart" id="chart">
-                <div class="ampy-calc__chart-inner">
-                  <div class="ampy-calc__chart-top">
-                    <span class="ampy-calc__chart-corner ampy-calc__chart-corner--end-value ampy-calc__t-mono" id="chartEndValue">—</span>
-                  </div>
-                  <div class="ampy-calc__chart-plot">
-                    <svg viewBox="0 0 1000 400" preserveAspectRatio="none" id="chartSvg"></svg>
-                  </div>
-                  <div class="ampy-calc__chart-axis">
-                    <span class="ampy-calc__chart-corner ampy-calc__chart-corner--today">I dag</span>
-                    <span class="ampy-calc__chart-corner ampy-calc__chart-corner--end-axis" id="chartEndAxis">15 år</span>
-                  </div>
-                  <div class="ampy-calc__be-marker" id="beMarker">
-                    <span class="ampy-calc__be-dot"></span>
-                    <span class="ampy-calc__be-line"></span>
-                    <div class="ampy-calc__be-label">
-                      <span class="ampy-calc__be-caption">Återbetald</span>
-                      <span class="ampy-calc__be-time" id="beTime">—</span>
-                    </div>
-                  </div>
-                </div>
+            <!-- Före/efter — elkostnad per år (ersätter payback-kurvan) -->
+            <div class="ampy-calc__compare">
+              <span class="ampy-calc__evidence-label">Vad belysningen kostar per år</span>
+              <div class="ampy-calc__compare-row">
+                <span class="ampy-calc__compare-key">I dag</span>
+                <span class="ampy-calc__compare-track"><span class="ampy-calc__compare-bar ampy-calc__compare-bar--now" id="barNow"></span></span>
+                <span class="ampy-calc__compare-val ampy-calc__t-mono" id="costNow">—</span>
               </div>
+              <div class="ampy-calc__compare-row">
+                <span class="ampy-calc__compare-key">Med LED</span>
+                <span class="ampy-calc__compare-track"><span class="ampy-calc__compare-bar ampy-calc__compare-bar--led" id="barLed"></span></span>
+                <span class="ampy-calc__compare-val ampy-calc__t-mono" id="costLed">—</span>
+              </div>
+              <p class="ampy-calc__evidence-caption" id="compareCaption">—</p>
             </div>
 
             <div class="ampy-calc__cta-stack">
               <button class="ampy-calc__btn ampy-calc__btn--primary ampy-calc__btn--lg ampy-calc__btn--block" id="ctaBtn" type="button">
-                <span id="ctaLabel">Få en exakt offert</span>
+                <span id="ctaLabel">Få en skräddarsydd offert</span>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
               </button>
-              <a class="ampy-calc__btn-link" id="lasMer" href="#" target="_blank" rel="noopener">
-                Läs mer om LED-konvertering
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
-              </a>
             </div>
           </section>
 

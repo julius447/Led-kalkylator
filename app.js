@@ -32,7 +32,8 @@
 
   // --- lookups ------------------------------------------------------------
   function lookup(list, k, v) { for (var i = 0; i < list.length; i++) if (list[i][k] === v) return list[i]; return null; }
-  function findBrinntid(k) { return DATA.brinntid_default.filter(function (b) { return b.kontext === k; })[0]; }
+  // Segment-medveten: "Snitt brinntid" finns per segment med olika timmar
+  function findBrinntid(k) { return DATA.brinntid_default.filter(function (b) { return b.kontext === k && b.segment === state.segment; })[0]; }
   function typerForSegment(seg) { var kat = seg === "privat" ? "privat" : "kommersiell"; return DATA.watt_tabell.filter(function (t) { return t.kat === kat; }); }
   function kontexterForSegment(seg) { return DATA.brinntid_default.filter(function (b) { return b.segment === seg; }); }
   function zonpris(z) { return typeof DATA.elpris[z] === "number" ? DATA.elpris[z] : DATA.elpris.nationellt_default; }
@@ -132,9 +133,9 @@
     document.querySelectorAll("#segRegion button").forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.region === state.elprisomrade)); });
 
     $("segCaption").textContent = d.seg_caption;
-    $("antalLabel").textContent = "Antal " + plural;
+    $("antalLabel").firstChild.nodeValue = "Antal " + plural + " ";
+    $("antalUnit").textContent = plural === "armaturer" ? "st" : "st";
     $("ctaLabel").textContent = d.cta_text;
-    $("lasMer").href = DATA.lankar.las_mer;
 
     buildTypSelector();
 
@@ -161,29 +162,23 @@
       aria: function (v) { return fmtYears(v) + " timmar per dygn"; },
       onInput: function (v) { state.timmar_dag = v; $("brinntidValue").textContent = fmtYears(v); scheduleRender(); }
     });
-
-    // tooltips → native title
-    document.querySelectorAll(".ampy-calc__tip").forEach(function (b) { if (b.dataset.tip) b.title = b.dataset.tip; });
   }
 
   // --- render -------------------------------------------------------------
   function render() {
     try {
       var r = calc(state, DATA); lastResult = r;
-      renderHero(r); renderTrio(r); renderEnergy(r); renderChart(r);
+      renderHero(r); renderStats(r); renderCompare(r);
       $("antalValue").textContent = fmtInt(state.antal);
       $("brinntidValue").textContent = fmtYears(state.timmar_dag);
-      $("chartEndAxis").textContent = r.horisont_ar + " år";
-      $("heroEyebrow").textContent = "Sparar på " + r.horisont_ar + " år";
-      $("heroSub").textContent = "Total besparing över " + r.horisont_ar + " år, minus vad bytet kostar.";
       renderMethodology(r);
       trackBerakning(r);
       firstPaint = false;
     } catch (e) { renderError(); }
   }
   function renderError() {
-    $("heroValue").textContent = "—"; $("heroEyebrow").textContent = "Kunde inte räkna";
-    ["statCost", "statAnnual", "statPayback"].forEach(function (id) { $(id).textContent = "—"; });
+    setText("heroValue", "—");
+    ["statKwh", "statB", "statCost"].forEach(function (id) { setText(id, "—"); });
     track("calc_error", { segment: state.segment, typ_id: state.typ_id });
   }
 
@@ -200,94 +195,46 @@
     setTimeout(function () { node.textContent = fmt(target); }, dur + 80);
   }
 
-  function renderHero(r) { animateNumber("hero", r.netto_horisont, fmtKr, "heroValue"); }
+  // Hjälte = årlig besparing (siffran i fokus)
+  function renderHero(r) { animateNumber("hero", r.arlig_besparing, fmtKr, "heroValue"); }
 
-  function renderTrio(r) {
+  // Tre poster: energi du kapar · CO2 du sparar (privat → kr/mån) · uppskattad kostnad
+  function renderStats(r) {
     var b = r.breakdown, privat = state.segment === "privat";
-    animateNumber("cost", b.total_led_kostnad, fmtKr, "statCost");
-    $("statCostSub").textContent = "≈ " + fmtKr(b.per_enhet_kostnad) + " kr per " + (privat ? "lampa" : "armatur");
-    animateNumber("annual", r.arlig_besparing, fmtKr, "statAnnual");
-    $("statAnnualSub").textContent = "≈ " + fmtKr(r.arlig_besparing / 12) + " kr/mån";
-    $("statPayback").textContent = fmtYears(r.payback_ar);
-  }
+    animateNumber("kwh", r.kwh_ar, fmtInt, "statKwh");
+    var pct = b.kwh_gammal_total > 0 ? Math.round(r.kwh_ar / b.kwh_gammal_total * 100) : 0;
+    $("statKwhSub").textContent = pct + " % lägre förbrukning";
 
-  function renderEnergy(r) {
-    var b = r.breakdown, before = b.kwh_gammal_total, saved = r.kwh_ar, after = b.kwh_led_total;
-    var bar = $("energyBar"); bar.textContent = "";
-    if (before > 0) {
-      var s1 = el("div", "ampy-calc__streams-segment"); s1.style.background = "var(--state-success)"; s1.style.width = (saved / before * 100) + "%";
-      var s2 = el("div", "ampy-calc__streams-segment"); s2.style.background = "var(--chart-stream-4)"; s2.style.width = (after / before * 100) + "%";
-      bar.appendChild(s1); bar.appendChild(s2);
-    }
-    var pct = before > 0 ? Math.round(saved / before * 100) : 0;
-    var cap = "Du kapar <strong>" + fmtInt(saved) + " kWh/år</strong> — " + pct + " % lägre.";
-    if (r.visa_co2 && r.co2_kg_ar != null) cap += " ≈ " + fmtCo2(r.co2_kg_ar) + " CO₂/år (nordisk residualmix, ESG).";
-    else cap += " ≈ " + fmtKr(r.arlig_besparing / 12) + " kr i månaden.";
-    $("energyCaption").innerHTML = cap;
-  }
-
-  // --- payback-kurva (port från batterikalkylatorn) -----------------------
-  function renderChart(r) {
-    var chartEl = $("chart"), svg = $("chartSvg"), H = r.horisont_ar, cum = r.cumulative;
-    var W = 1000, HH = 400, padT = 8, padB = 8, plotH = HH - padT - padB;
-    var yMin = cum[0], yMax = cum[H];
-    if (!(yMax > yMin)) { // platt/0 → ingen kurva
-      svg.innerHTML = ""; chartEl.classList.add("is-no-payback"); $("chartEndValue").textContent = "—"; return;
-    }
-    chartEl.classList.remove("is-no-payback");
-    function x(year) { return (year / H) * W; }
-    function y(v) { return padT + plotH - ((v - yMin) / (yMax - yMin)) * plotH; }
-    var zeroY = y(0);
-    var pb = (r.payback_ar && r.payback_ar > 0 && r.payback_ar <= H) ? r.payback_ar : null;
-    var noAnim = prefersReduced || dragging; // ingen rit-/fade-animation under drag (smooth)
-    var aStyle = function (d) { return noAnim ? "" : ' style="opacity:0;animation:ampy-zone-fade 300ms cubic-bezier(0.2,0,0.2,1) ' + d + 'ms forwards;"'; };
-    var dStyle = function (d) { return noAnim ? "" : ' style="stroke-dasharray:1400;stroke-dashoffset:1400;animation:ampy-draw 300ms cubic-bezier(0.2,0,0.2,1) ' + d + 'ms forwards;"'; };
-    var h = "";
-    h += '<line x1="0" y1="' + zeroY + '" x2="' + W + '" y2="' + zeroY + '" stroke="rgba(255,255,255,0.32)" stroke-width="1" stroke-dasharray="3,5" vector-effect="non-scaling-stroke"/>';
-    if (pb != null) {
-      var lp = [x(0) + "," + zeroY];
-      for (var i = 0; i <= Math.floor(pb); i++) lp.push(x(i) + "," + y(cum[i]));
-      lp.push(x(pb) + "," + zeroY);
-      h += '<polygon points="' + lp.join(" ") + '" fill="var(--chart-zone-loss)"' + aStyle(0) + '/>';
-      var gp = [x(pb) + "," + zeroY];
-      for (var j = Math.ceil(pb); j <= H; j++) gp.push(x(j) + "," + y(cum[j]));
-      gp.push(x(H) + "," + zeroY);
-      h += '<polygon points="' + gp.join(" ") + '" fill="var(--chart-zone-profit)"' + aStyle(80) + '/>';
-      var a2 = [];
-      for (var k = 0; k <= Math.floor(pb); k++) a2.push(x(k) + "," + y(cum[k]));
-      a2.push(x(pb) + "," + zeroY);
-      h += '<polyline points="' + a2.join(" ") + '" fill="none" stroke="var(--chart-line-loss)" stroke-width="2.75" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"' + dStyle(0) + '/>';
-      var b2 = [x(pb) + "," + zeroY];
-      for (var m = Math.ceil(pb); m <= H; m++) b2.push(x(m) + "," + y(cum[m]));
-      h += '<polyline points="' + b2.join(" ") + '" fill="none" stroke="var(--chart-line-profit)" stroke-width="2.75" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"' + dStyle(60) + '/>';
+    var statB = $("statB"), statBUnit = $("statBUnit"), statBLabel = $("statBLabel"), statBSub = $("statBSub");
+    if (r.visa_co2 && r.co2_kg_ar != null) {
+      var ton = r.co2_kg_ar >= 1000;
+      statBLabel.textContent = "CO₂ du sparar";
+      statB.textContent = ton ? (r.co2_kg_ar / 1000).toFixed(1).replace(".", ",") : fmtInt(r.co2_kg_ar);
+      statBUnit.textContent = ton ? "ton/år" : "kg/år";
+      statBSub.textContent = "nordisk residualmix (ESG)";
     } else {
-      var lp2 = [x(0) + "," + zeroY];
-      cum.forEach(function (c, yr) { lp2.push(x(yr) + "," + y(c)); });
-      lp2.push(x(H) + "," + zeroY);
-      h += '<polygon points="' + lp2.join(" ") + '" fill="var(--chart-zone-profit)"' + aStyle(0) + '/>';
-      var all = cum.map(function (c, yr) { return x(yr) + "," + y(c); }).join(" ");
-      h += '<polyline points="' + all + '" fill="none" stroke="var(--chart-line-profit)" stroke-width="2.75" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"' + dStyle(0) + '/>';
+      statBLabel.textContent = "Per månad";
+      statB.textContent = fmtKr(r.arlig_besparing / 12);
+      statBUnit.textContent = "kr/mån";
+      statBSub.textContent = "lägre elkostnad";
     }
-    h += '<circle cx="' + x(0) + '" cy="' + y(cum[0]) + '" r="5" fill="var(--chart-line-loss)"/>';
-    var endVal = cum[H];
-    h += '<circle cx="' + x(H) + '" cy="' + y(endVal) + '" r="6" fill="' + (endVal >= 0 ? "var(--chart-line-profit)" : "var(--chart-line-loss)") + '"/>';
-    svg.innerHTML = h;
 
-    var ev = $("chartEndValue"); ev.textContent = (endVal >= 0 ? "+" : "") + fmtKr(endVal) + " kr"; ev.classList.toggle("is-loss", endVal < 0);
-    if (pb != null) {
-      var beFrac = pb / H;
-      chartEl.style.setProperty("--be-x", (beFrac * 100) + "%");
-      chartEl.style.setProperty("--be-y-frac", String(beFrac));
-      $("beTime").textContent = fmtYears(pb) + " år";
-      chartEl.classList.remove("is-no-be");
-      chartEl.classList.toggle("is-be-early", beFrac < 0.22);
-    } else { chartEl.classList.add("is-no-be"); chartEl.classList.remove("is-be-early"); }
+    animateNumber("cost", b.total_led_kostnad, fmtKr, "statCost");
+    $("statCostSub").textContent = "≈ " + fmtKr(b.per_enhet_kostnad) + " kr/" + (privat ? "ljuskälla" : "armatur") +
+      (privat ? " · inkl moms efter ROT" : " · ex moms");
+  }
 
-    if (!document.getElementById("ampyChartKeyframes")) {
-      var st = document.createElement("style"); st.id = "ampyChartKeyframes";
-      st.textContent = "@keyframes ampy-draw{to{stroke-dashoffset:0}}@keyframes ampy-zone-fade{to{opacity:1}}";
-      document.head.appendChild(st);
-    }
+  // Före/efter — elkostnad per år (ersätter payback-kurvan)
+  function renderCompare(r) {
+    var b = r.breakdown, kr = b.kr_kwh;
+    var costNow = b.kwh_gammal_total * kr, costLed = b.kwh_led_total * kr;
+    $("costNow").textContent = fmtKr(costNow) + " kr";
+    $("costLed").textContent = fmtKr(costLed) + " kr";
+    var max = costNow > 0 ? costNow : 1;
+    $("barNow").style.width = "100%";
+    $("barLed").style.width = (costLed / max * 100) + "%";
+    var pct = costNow > 0 ? Math.round((1 - costLed / costNow) * 100) : 0;
+    $("compareCaption").innerHTML = "LED drar <strong>" + pct + " % mindre</strong> — skillnaden är din besparing.";
   }
 
   // --- methodology --------------------------------------------------------
@@ -295,20 +242,21 @@
     var stack = $("methodologyStack");
     if (stack.dataset.seg === state.segment && stack.children.length) { return; } // statisk per segment
     stack.dataset.seg = state.segment; stack.textContent = "";
+    var privat = state.segment === "privat";
     var items = [
       ["Årlig besparing", "(W_före − W_efter) ÷ 1000 × h/dygn × 365 × antal × elpris", "Ren aritmetik på tal du själv ser och kan justera."],
-      ["Energi", "sparad effekt × drifttimmar per år", "Skillnaden i förbrukning före och efter bytet."],
-      ["Payback-tid", "kostnad ÷ årlig besparing", "Tid till break-even. Material" + (state.segment === "privat" ? " (gör-det-själv)" : " + installation av behörig elektriker") + "."],
-      ["Besparing på " + r.horisont_ar + " år", "årlig besparing × " + r.horisont_ar + " − kostnad", "Vi antar oförändrat elpris — stiger priset blir besparingen större, inte mindre."]
+      ["Energi du kapar", "sparad effekt × drifttimmar per år", "Skillnaden i förbrukning före och efter bytet — det som visas i före/efter-jämförelsen."],
+      ["Uppskattad kostnad", "pris per " + (privat ? "ljuskälla" : "armatur") + " × antal", "Total kostnad inkl. installation. " + (DATA.avdrag_copy[state.segment] || "")]
     ];
-    if (state.segment !== "privat") items.push(["CO₂", "sparad kWh × 464,79 g", "Nordisk residualmix (ESG, Energimarknadsinspektionen 2024). Visas aldrig för privatpersoner som fysiska utsläpp."]);
+    if (!privat) items.push(["CO₂ du sparar", "sparad kWh × 464,79 g", "Nordisk residualmix (ESG, Energimarknadsinspektionen 2024). Visas aldrig för privatpersoner som fysiska utsläpp."]);
+    items.push(["Payback-tid", "kostnad ÷ årlig besparing", "Ungefärlig tid till break-even — exakt siffra i offerten."]);
     items.forEach(function (it) {
       var box = el("div", "ampy-calc__methodology-item");
       box.appendChild(el("h3", null, it[0])); box.appendChild(el("code", null, it[1])); box.appendChild(el("p", null, it[2]));
       stack.appendChild(box);
     });
     var disc = $("disclaimers"); disc.textContent = "";
-    disc.appendChild(el("p", null, "* Att betala = material" + (state.segment === "privat" ? " (gör-det-själv, ingen installation)" : " + installation. " ) + " " + (DATA.avdrag_copy[state.segment] || "")));
+    disc.appendChild(el("p", null, "* " + (DATA.avdrag_copy[state.segment] || "")));
     disc.appendChild(el("p", null, "Elpris: medvetet lågt schablonpris per elprisområde (SE1–SE4). Watt-, kostnads- och timantaganden är konservativt valda. Källor: research-dossier (2026)."));
   }
 
@@ -338,11 +286,38 @@
     $("typButton").onclick = function (e) { e.stopPropagation(); var s = $("typSelector"); s.setAttribute("aria-expanded", String(s.getAttribute("aria-expanded") !== "true")); };
     document.addEventListener("click", function (e) { if (!$("typSelector").contains(e.target)) closeSel(); });
     document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeSel(); });
-    // CTA / email / läs mer
+    // CTA
     $("ctaBtn").onclick = function () {
       track("cta_klick", { segment: state.segment, besparing: bucket((lastResult || {}).arlig_besparing || 0) });
       var url = DATA.cta && DATA.cta.url; if (url) window.open(url, "_blank", "noopener");
     };
+    wireTooltips();
+  }
+
+  // Flytande info-tooltip (visas vid hover/fokus/tap på "i"-knappar)
+  function wireTooltips() {
+    var tip = el("div", "ampy-calc__tooltip"); tip.style.display = "none";
+    $("ampyLed").appendChild(tip); // inuti .ampy-calc så tokens (var) gäller
+    var current = null;
+    function show(btn) {
+      current = btn; tip.textContent = btn.dataset.tip || "";
+      var tw = Math.min(280, window.innerWidth - 24);
+      tip.style.maxWidth = tw + "px"; tip.style.display = "block";
+      var r = btn.getBoundingClientRect();
+      var left = clamp(r.left + r.width / 2 - tw / 2, 12, window.innerWidth - tw - 12);
+      tip.style.left = left + "px";
+      tip.style.top = (r.top - 8) + "px";
+      tip.style.transform = "translateY(-100%)";
+    }
+    function hide() { current = null; tip.style.display = "none"; }
+    document.querySelectorAll(".ampy-calc__tip").forEach(function (btn) {
+      btn.addEventListener("mouseenter", function () { show(btn); });
+      btn.addEventListener("mouseleave", hide);
+      btn.addEventListener("focus", function () { show(btn); });
+      btn.addEventListener("blur", hide);
+      btn.addEventListener("click", function (e) { e.preventDefault(); if (current === btn) hide(); else show(btn); });
+    });
+    window.addEventListener("scroll", hide, true);
   }
 
   // --- telemetri ----------------------------------------------------------
