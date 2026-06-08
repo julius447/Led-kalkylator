@@ -22,6 +22,13 @@
   var state = { segment: "brf", typ_id: null, antal: null, timmar_dag: null, elprisomrade: "SE3", _kontext: null };
   var lastResult = null, prev = {}, firstPaint = true, meta = {};
   var antalSlider = null, brinntidSlider = null;
+  var dragging = false, renderQueued = false;
+
+  // Sammanför många slider-events till EN render per animationsruta (smooth drag)
+  function scheduleRender() {
+    if (renderQueued) return; renderQueued = true;
+    requestAnimationFrame(function () { renderQueued = false; render(); });
+  }
 
   // --- lookups ------------------------------------------------------------
   function lookup(list, k, v) { for (var i = 0; i < list.length; i++) if (list[i][k] === v) return list[i]; return null; }
@@ -77,11 +84,11 @@
       value = v; position(v); if (fire) o.onInput(v);
     }
     function pickByX(cx) { var r = slider.getBoundingClientRect(); var usable = r.width - 24; var frac = clamp((cx - r.left - 12) / usable, 0, 1); return o.min + frac * (o.max - o.min); }
-    var dragging = false;
-    slider.addEventListener("pointerdown", function (e) { dragging = true; try { slider.setPointerCapture(e.pointerId); } catch (x) {} setVal(pickByX(e.clientX), true); });
-    slider.addEventListener("pointermove", function (e) { if (dragging) setVal(pickByX(e.clientX), true); });
-    slider.addEventListener("pointerup", function () { dragging = false; });
-    slider.addEventListener("pointercancel", function () { dragging = false; });
+    var drag = false;
+    slider.addEventListener("pointerdown", function (e) { drag = true; dragging = true; try { slider.setPointerCapture(e.pointerId); } catch (x) {} setVal(pickByX(e.clientX), true); });
+    slider.addEventListener("pointermove", function (e) { if (drag) setVal(pickByX(e.clientX), true); });
+    slider.addEventListener("pointerup", function () { drag = false; dragging = false; scheduleRender(); });
+    slider.addEventListener("pointercancel", function () { drag = false; dragging = false; scheduleRender(); });
     slider.addEventListener("keydown", function (e) {
       if (e.key === "ArrowRight" || e.key === "ArrowUp") { setVal(value + step, true); e.preventDefault(); }
       else if (e.key === "ArrowLeft" || e.key === "ArrowDown") { setVal(value - step, true); e.preventDefault(); }
@@ -144,7 +151,7 @@
       min: as.min, max: as.max, value: state.antal, step: 1, ticks: as.ticks,
       format: function (v) { return fmtInt(v); },
       aria: function (v) { return v + " " + plural; },
-      onInput: function (v) { state.antal = v; render(); }
+      onInput: function (v) { state.antal = v; $("antalValue").textContent = fmtInt(v); scheduleRender(); }
     });
 
     // brinntid slider
@@ -152,7 +159,7 @@
       min: 0, max: 24, value: state.timmar_dag, step: 0.5, ticks: [0, 6, 12, 18, 24],
       format: function (v) { return fmtYears(v) + " h"; },
       aria: function (v) { return fmtYears(v) + " timmar per dygn"; },
-      onInput: function (v) { state.timmar_dag = v; render(); }
+      onInput: function (v) { state.timmar_dag = v; $("brinntidValue").textContent = fmtYears(v); scheduleRender(); }
     });
 
     // tooltips → native title
@@ -183,7 +190,7 @@
   function animateNumber(key, target, fmt, id) {
     var node = $(id); if (!node) return;
     node.textContent = fmt(target);
-    if (firstPaint || prefersReduced) { prev[key] = target; return; }
+    if (firstPaint || prefersReduced || dragging) { prev[key] = target; return; }
     var from = prev[key] != null ? prev[key] : target; prev[key] = target;
     if (from === target) return;
     var t0 = null, dur = 280;
@@ -232,8 +239,9 @@
     function y(v) { return padT + plotH - ((v - yMin) / (yMax - yMin)) * plotH; }
     var zeroY = y(0);
     var pb = (r.payback_ar && r.payback_ar > 0 && r.payback_ar <= H) ? r.payback_ar : null;
-    var aStyle = function (d) { return prefersReduced ? "" : ' style="opacity:0;animation:ampy-zone-fade 300ms cubic-bezier(0.2,0,0.2,1) ' + d + 'ms forwards;"'; };
-    var dStyle = function (d) { return prefersReduced ? "" : ' style="stroke-dasharray:1400;stroke-dashoffset:1400;animation:ampy-draw 300ms cubic-bezier(0.2,0,0.2,1) ' + d + 'ms forwards;"'; };
+    var noAnim = prefersReduced || dragging; // ingen rit-/fade-animation under drag (smooth)
+    var aStyle = function (d) { return noAnim ? "" : ' style="opacity:0;animation:ampy-zone-fade 300ms cubic-bezier(0.2,0,0.2,1) ' + d + 'ms forwards;"'; };
+    var dStyle = function (d) { return noAnim ? "" : ' style="stroke-dasharray:1400;stroke-dashoffset:1400;animation:ampy-draw 300ms cubic-bezier(0.2,0,0.2,1) ' + d + 'ms forwards;"'; };
     var h = "";
     h += '<line x1="0" y1="' + zeroY + '" x2="' + W + '" y2="' + zeroY + '" stroke="rgba(255,255,255,0.32)" stroke-width="1" stroke-dasharray="3,5" vector-effect="non-scaling-stroke"/>';
     if (pb != null) {
@@ -335,17 +343,7 @@
       track("cta_klick", { segment: state.segment, besparing: bucket((lastResult || {}).arlig_besparing || 0) });
       var url = DATA.cta && DATA.cta.url; if (url) window.open(url, "_blank", "noopener");
     };
-    $("emailForm").onsubmit = function (e) {
-      e.preventDefault();
-      var v = $("emailInput").value.trim(); if (!v || v.indexOf("@") < 0) return;
-      track("maila_kalkyl", { segment: state.segment, besparing: bucket((lastResult || {}).arlig_besparing || 0) });
-      var ep = DATA.lankar.maila_endpoint;
-      if (ep) { fetch(ep, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ epost: v, segment: state.segment, scenario: snapshot() }) }).catch(function () {}); }
-      $("emailSubmit").textContent = "Skickat ✓"; $("emailInput").value = "";
-      setTimeout(function () { $("emailSubmit").textContent = "Maila kalkylen"; }, 2500);
-    };
   }
-  function snapshot() { var r = lastResult || {}; return { typ_id: state.typ_id, antal: state.antal, timmar_dag: state.timmar_dag, elprisomrade: state.elprisomrade, arlig_besparing: Math.round(r.arlig_besparing || 0), payback_ar: r.payback_ar, netto: Math.round(r.netto_horisont || 0) }; }
 
   // --- telemetri ----------------------------------------------------------
   function captureMeta() {

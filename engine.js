@@ -37,10 +37,13 @@
       if (row.w_led > row.w_gammal) {
         throw new Error("Dataschema underkänt: w_led > w_gammal för " + row.id);
       }
-      if (typeof row.material_kr !== "number" || typeof row.installation_kr !== "number") {
-        throw new Error("Dataschema underkänt: material_kr/installation_kr saknas för " + row.id);
+      if (typeof row.material_kr !== "number") {
+        throw new Error("Dataschema underkänt: material_kr saknas för " + row.id);
       }
     });
+    if (!data.prissattning || typeof data.prissattning.material_markup !== "number" || typeof data.prissattning.installation_kr !== "number") {
+      throw new Error("Dataschema underkänt: prissattning (material_markup/installation_kr) saknas.");
+    }
     ["SE1", "SE2", "SE3", "SE4", "nationellt_default"].forEach(function (k) {
       if (typeof data.elpris[k] !== "number") {
         throw new Error("Dataschema underkänt: elpris." + k + " ej numeriskt.");
@@ -97,10 +100,13 @@
     var arligBesparing = kwhArTotal * krKwh;                      // kr/år
     var besparing10ar = arligBesparing * 10;
 
-    // --- Payback (material + ev. installation, kostnad bor på ljuskällan) ---
+    // --- Offertpris: material × påslag (+ installation för armaturbyte) ---
     var segConf = data.segments[inputs.segment] || {};
     var betalarInstallation = !!segConf.betalar_installation;
-    var perEnhetKostnad = typ.material_kr + (betalarInstallation ? typ.installation_kr : 0);
+    var pris = data.prissattning;
+    var materialPaslag = typ.material_kr * pris.material_markup;
+    var installation = betalarInstallation ? pris.installation_kr : 0;
+    var perEnhetKostnad = materialPaslag + installation;
     var totalLedKostnad = perEnhetKostnad * antal;
     var paybackAr = arligBesparing > 0 ? (totalLedKostnad / arligBesparing) : null;
 

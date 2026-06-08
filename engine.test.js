@@ -38,7 +38,8 @@ const a = calc({ segment: "foretag", typ_id: "t8_2x36", antal: 30, timmar_dag: 7
 approx("kWh/år (48/1000·7·365·30)", a.kwh_ar, 3679.2);
 approx("årlig besparing", a.arlig_besparing, 6070.68);
 approx("CO2 kg/år (3679,2·464,79/1000)", a.co2_kg_ar, 1710.06, 0.1);
-approx("payback (70500/6070,68)", a.payback_ar, 11.613, 0.01);
+// kostnad: 549×1,5+800 = 1623,5/armatur × 30 = 48705
+approx("payback (48705/6070,68)", a.payback_ar, 8.0231, 0.01);
 eq("visa_co2", a.visa_co2, true);
 
 console.log("Fall B — BRF default, 2×36W T8, 80 st, trapphus 11h, SE3");
@@ -52,7 +53,8 @@ approx("kWh/år (44/1000·4·365·15)", c.kwh_ar, 963.6);
 approx("årlig besparing", c.arlig_besparing, 1589.94);
 eq("visa_co2 (Privat=false)", c.visa_co2, false);
 eq("co2 utelämnad", c.co2_kg_ar, null);
-approx("payback material-only (1050/1589,94)", c.payback_ar, 0.6604, 0.01);
+// privat = material×1,5 (55×1,5=82,5), ingen installation; 15×82,5 = 1237,5
+approx("payback DIY (1237,5/1589,94)", c.payback_ar, 0.7783, 0.01);
 
 console.log("Fall D — kr/kWh-override vinner; ogiltig faller tillbaka");
 const d1 = calc({ segment: "foretag", typ_id: "t8_2x36", antal: 30, timmar_dag: 7, elprisomrade: "SE3", kr_kwh: 2.40 }, DATA);
@@ -73,10 +75,16 @@ ok("enormt antal ger ändligt tal", Number.isFinite(fBig.arlig_besparing) && Num
 console.log("Fall G — okänd ljuskälla kastar (felgränskontrakt)");
 throws("okänd typ_id kastar", () => calc({ segment: "brf", typ_id: "finns_ej", antal: 1, timmar_dag: 7, elprisomrade: "SE3" }, DATA));
 
-console.log("Fall H — katalog: 27 ljuskällor, privat DIY har installation 0");
+console.log("Fall H — prissättning: material × påslag (+ installation kommersiell); horisont 10");
 eq("antal ljuskällor", DATA.watt_tabell.length, 27);
-ok("alla privat-typer har installation 0", DATA.watt_tabell.filter(t => t.kat === "privat").every(t => t.installation_kr === 0));
-ok("alla kommersiella har installation > 0", DATA.watt_tabell.filter(t => t.kat === "kommersiell").every(t => t.installation_kr > 0));
+eq("påslag 1,5", DATA.prissattning.material_markup, 1.5);
+eq("installation 800", DATA.prissattning.installation_kr, 800);
+eq("horisont 10 år", DATA.horisont_ar, 10);
+var privU = calc({ segment: "privat", typ_id: "gu10_50", antal: 1, timmar_dag: 4, elprisomrade: "SE3" }, DATA);
+eq("privat per enhet = 55×1,5 = 82,5 (ingen installation)", privU.breakdown.per_enhet_kostnad, 82.5);
+eq("cumulative-längd = horisont+1 = 11", privU.cumulative.length, 11);
+var komU = calc({ segment: "brf", typ_id: "t8_2x36", antal: 1, timmar_dag: 11, elprisomrade: "SE3" }, DATA);
+eq("kommersiell per enhet = 549×1,5+800 = 1623,5", komU.breakdown.per_enhet_kostnad, 1623.5);
 
 console.log(`\n${fail === 0 ? "ALLA GRÖNA" : "RÖDA TESTER"} — ${pass} pass, ${fail} fail`);
 process.exit(fail === 0 ? 0 : 1);
