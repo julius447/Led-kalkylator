@@ -1,17 +1,17 @@
 /* =============================================================================
-   LED-kalkylatorn — DATALAGER (Lager 3) — vol.3
+   LED-kalkylatorn — DATA LAYER (Layer 3) — vol.3
    -----------------------------------------------------------------------------
-   ALL affärsdata bor här. Motorn (engine.js) har noll hårdkodade tal.
-   Värden från Agent 1:s research-dossier (vol.1) + vol.3-research (2026-06-06):
-   utökad ljuskällelista, korrigerade brinntider, antal-defaults. Konservativ
-   riktning (mindre besparing, längre verklighet) — ärlighet = moat.
-   Versionerat schema: motorn vägrar okänd struktur.
+   ALL business data lives here. The engine (engine.js) has zero hardcoded numbers.
+   Values from Agent 1's research dossier (vol.1) + vol.3 research (2026-06-06):
+   expanded light-source list, corrected burn times, quantity defaults. Conservative
+   direction (less saving, longer real-world figures) — honesty = moat.
+   Versioned schema: the engine refuses an unknown structure.
    ============================================================================= */
 window.AMPY_LED_DATA = {
   schema_version: "1.0.0",
   _status: "Research-signerad (vol.1 + vol.3 2026-06-06). Kräver sakkunnig-signatur före lansering.",
 
-  /* --- Elpris: TOTALPRIS kr/kWh inkl. moms per elprisområde (enda priskällan) */
+  /* --- Electricity price: TOTAL PRICE kr/kWh incl. VAT per electricity-price area (the only price source) */
   elpris: {
     SE1: 1.35, SE2: 1.40, SE3: 1.65, SE4: 1.85,
     nationellt_default: 1.50,
@@ -21,10 +21,10 @@ window.AMPY_LED_DATA = {
     not: "Medvetet lågt schablonpris per område — verklig besparing blir snarare högre."
   },
 
-  /* --- Segment-konfiguration (affärsregler i data, ej i motorn) --------------
-     OBS: visa_co2 styr om CO₂ visas (Företag/BRF) eller byts mot kr/månad (Privat).
-     betalar_installation LÄSES INTE av motorn — installation ingår alltid i
-     kostnad_kr i watt_tabell. Bygg ingen prislogik på flaggan; den är historisk. */
+  /* --- Segment configuration (business rules in data, not in the engine) --------------
+     NOTE: visa_co2 controls whether CO₂ is shown (Company/BRF) or replaced with kr/month (Private).
+     betalar_installation is NOT READ by the engine — installation is always included in
+     kostnad_kr in watt_tabell. Do not build any price logic on the flag; it is historical. */
   segments: {
     brf:     { betalar_installation: true,  visa_co2: true },
     foretag: { betalar_installation: true,  visa_co2: true },
@@ -33,40 +33,40 @@ window.AMPY_LED_DATA = {
 
   limits: { antal_max: 100000 },
 
-  /* Horisont för kumulativ besparing + payback-kurva */
+  /* Horizon for cumulative saving + payback curve */
   horisont_ar: 10,
 
-  /* CTA pekar mot offert-/hjälp-flöde på destinationssidan (värde först, ingen vägg) */
-  cta: { url: null }, // sätts vid Bricks-transplant; null = spåra klick (prototyp)
-  // Offertförfrågan: sätt endpoint till en riktig POST-URL före produktion.
-  // Tills dess används mailto-fallback så inget lead tappas.
+  /* CTA points to the quote/help flow on the destination page (value first, no wall) */
+  cta: { url: null }, // set during Bricks transplant; null = track click (prototype)
+  // Quote request: set endpoint to a real POST URL before production.
+  // Until then a mailto fallback is used so no lead is lost.
   lead: { endpoint: null, fallback_mailto: "offert@ampy.se" },
 
-  /* --- Prissättning (offert) — kostnad_kr = total per armatur INKL installation ---
-     Bekräftat av Ampys bokare/elektriker:
-     Företag/BRF (lysrör): 1000–2000 kr/armatur inkl. installation, EX moms.
-     Privat (mest halogenspot → LED-spot): 500–1000 kr/armatur inkl. installation,
-       INKL moms, efter ROT. Privat installeras alltid av Ampy (ingen DIY).
-     High-bay/utomhus ligger över lysrör-spannet (dyrare armaturer). */
+  /* --- Pricing (quote) — kostnad_kr = total per fixture INCL. installation ---
+     Confirmed by Ampy's bookers/electricians:
+     Company/BRF (fluorescent tubes): 1000–2000 kr/fixture incl. installation, EXCL. VAT.
+     Private (mostly halogen spot → LED spot): 500–1000 kr/fixture incl. installation,
+       INCL. VAT, after ROT. Private is always installed by Ampy (no DIY).
+     High-bay/outdoor is above the fluorescent-tube range (more expensive fixtures). */
   prissattning: { moms_not: "Företag/BRF ex moms · Privat inkl moms efter ROT" },
 
-  /* --- Ljuskällor ("vad byter du från?") — kat styr segment, grupp = optgroup --- */
+  /* --- Light sources ("what are you switching from?") — kat drives segment, grupp = optgroup --- */
   watt_tabell: [
-    // Privat — glödljus (LED-lampa E27)
+    // Private — incandescent (LED bulb E27)
     { id: "glod_40",  namn: "Glödlampa 40 W (E27/E14)", kat: "privat", grupp: "Glödljus", w_gammal: 40,  w_led: 5,  lumen: "~470 lm",  kostnad_kr: 550 },
     { id: "glod_60",  namn: "Glödlampa 60 W (E27)",     kat: "privat", grupp: "Glödljus", w_gammal: 60,  w_led: 9,  lumen: "~800 lm",  kostnad_kr: 550 },
     { id: "glod_75",  namn: "Glödlampa 75 W (E27)",     kat: "privat", grupp: "Glödljus", w_gammal: 75,  w_led: 12, lumen: "~1100 lm", kostnad_kr: 600 },
     { id: "glod_100", namn: "Glödlampa 100 W (E27)",    kat: "privat", grupp: "Glödljus", w_gammal: 100, w_led: 16, lumen: "~1500 lm", kostnad_kr: 650 },
-    // Privat — halogen (kärnfall: halogenspot → LED-spot)
+    // Private — halogen (core case: halogen spot → LED spot)
     { id: "gu10_35",      namn: "Halogenspot GU10 35 W",        kat: "privat", grupp: "Halogen", w_gammal: 35,  w_led: 4,  lumen: "~230–300 lm", kostnad_kr: 650 },
     { id: "gu10_50",      namn: "Halogenspot GU10 50 W",        kat: "privat", grupp: "Halogen", w_gammal: 50,  w_led: 6,  lumen: "~380–450 lm", kostnad_kr: 700 },
     { id: "halo_r7s_150", namn: "Halogen linjär R7s 150 W",     kat: "privat", grupp: "Halogen", w_gammal: 150, w_led: 18, lumen: "~2200 lm",    kostnad_kr: 850 },
     { id: "halo_r7s_300", namn: "Halogen linjär R7s 300 W",     kat: "privat", grupp: "Halogen", w_gammal: 300, w_led: 35, lumen: "~3200 lm",    kostnad_kr: 950 },
-    // Privat — lågenergi/LED
+    // Private — low-energy/LED
     { id: "cfl_15",          namn: "Lågenergilampa (CFL) 15 W",      kat: "privat", grupp: "Lågenergi / LED", w_gammal: 15, w_led: 9,  lumen: "~800 lm",  kostnad_kr: 550 },
     { id: "cfl_23",          namn: "Lågenergilampa (CFL) 23 W",      kat: "privat", grupp: "Lågenergi / LED", w_gammal: 23, w_led: 14, lumen: "~1500 lm", kostnad_kr: 650 },
     { id: "led_spot_gammal", namn: "Äldre LED-spot (1:a gen, GU10)", kat: "privat", grupp: "Lågenergi / LED", w_gammal: 7,  w_led: 5,  lumen: "~350 lm",  kostnad_kr: 700 },
-    // Kommersiell — lysrör (komplett LED-armatur, 1000–2000 kr ex moms)
+    // Commercial — fluorescent tubes (complete LED fixture, 1000–2000 kr excl. VAT)
     { id: "t8_1x18", namn: "Lysrörsarmatur 1×18 W T8 (60 cm)",  kat: "kommersiell", grupp: "Lysrör", w_gammal: 28,  w_led: 10, lumen: "~1000–1300 lm", kostnad_kr: 1000 },
     { id: "t8_2x18", namn: "Lysrörsarmatur 2×18 W T8 (60 cm)",  kat: "kommersiell", grupp: "Lysrör", w_gammal: 56,  w_led: 20, lumen: "~2000–2600 lm", kostnad_kr: 1200 },
     { id: "t8_1x36", namn: "Lysrörsarmatur 1×36 W T8 (120 cm)", kat: "kommersiell", grupp: "Lysrör", w_gammal: 41,  w_led: 18, lumen: "~1800–2200 lm", kostnad_kr: 1200 },
@@ -76,9 +76,9 @@ window.AMPY_LED_DATA = {
     { id: "t5_28",   namn: "Lysrörsarmatur T5 28 W (120 cm)",   kat: "kommersiell", grupp: "Lysrör", w_gammal: 32,  w_led: 16, lumen: "~2600 lm",      kostnad_kr: 1300 },
     { id: "pl_18",   namn: "Kompaktlysrör PL 18 W",             kat: "kommersiell", grupp: "Lysrör", w_gammal: 21,  w_led: 10, lumen: "~1200 lm",      kostnad_kr: 1000 },
     { id: "pl_26",   namn: "Kompaktlysrör PL 26 W",             kat: "kommersiell", grupp: "Lysrör", w_gammal: 29,  w_led: 12, lumen: "~1800 lm",      kostnad_kr: 1000 },
-    // Kommersiell — LED (äldre)
+    // Commercial — LED (older)
     { id: "led_panel_gammal", namn: "Äldre LED-panel (1:a gen, ~45 W)", kat: "kommersiell", grupp: "LED", w_gammal: 45, w_led: 32, lumen: "~3600 lm", kostnad_kr: 1500 },
-    // Kommersiell — utomhus/högtak (dyrare armaturer, över lysrör-spannet)
+    // Commercial — outdoor/high-bay (more expensive fixtures, above the fluorescent-tube range)
     { id: "mh_250_highbay", namn: "Metallhalogen high-bay 250 W", kat: "kommersiell", grupp: "Utomhus / högtak", w_gammal: 280, w_led: 100, lumen: "—", kostnad_kr: 2800 },
     { id: "mh_400_highbay", namn: "Metallhalogen high-bay 400 W", kat: "kommersiell", grupp: "Utomhus / högtak", w_gammal: 455, w_led: 150, lumen: "—", kostnad_kr: 3500 },
     { id: "hps_150", namn: "Högtrycksnatrium 150 W (utomhus)",    kat: "kommersiell", grupp: "Utomhus / högtak", w_gammal: 170, w_led: 60,  lumen: "—", kostnad_kr: 2400 },
@@ -87,9 +87,9 @@ window.AMPY_LED_DATA = {
     { id: "merc_250", namn: "Kvicksilverlampa 250 W (äldre)",     kat: "kommersiell", grupp: "Utomhus / högtak", w_gammal: 272, w_led: 90,  lumen: "—", kostnad_kr: 2800 }
   ],
 
-  /* --- Brinntid per kontext (timmar/dygn, 365-dagars genomsnitt) -------------
-     "Snitt brinntid" = default per segment: ett genomsnitt över alla armaturer
-     i olika utrymmen (då ett byte oftast omfattar flera områden). */
+  /* --- Burn time per context (hours/day, 365-day average) -------------
+     "Snitt brinntid" = default per segment: an average across all fixtures
+     in different spaces (since a switch usually covers several areas). */
   brinntid_default: [
     // BRF
     { kontext: "Snitt brinntid",                    segment: "brf",     timmar_dag: 12 },
@@ -97,19 +97,19 @@ window.AMPY_LED_DATA = {
     { kontext: "Trapphus med sensor",               segment: "brf",     timmar_dag: 4 },
     { kontext: "Garage / förråd — utan styrning",   segment: "brf",     timmar_dag: 24 },
     { kontext: "Tvättstuga / gemensamt",            segment: "brf",     timmar_dag: 6 },
-    // Företag
+    // Company
     { kontext: "Snitt brinntid",                    segment: "foretag", timmar_dag: 9 },
     { kontext: "Kontor",                            segment: "foretag", timmar_dag: 9 },
     { kontext: "Butik",                             segment: "foretag", timmar_dag: 12 },
     { kontext: "Lager",                             segment: "foretag", timmar_dag: 14 },
     { kontext: "Verkstad / industri (2-skift)",     segment: "foretag", timmar_dag: 16 },
-    // Privat
+    // Private
     { kontext: "Snitt brinntid",                    segment: "privat",  timmar_dag: 5 },
     { kontext: "Hem / vardagsrum (primär armatur)", segment: "privat",  timmar_dag: 5 },
     { kontext: "Hem / hela bostaden (per lampa)",   segment: "privat",  timmar_dag: 6 }
   ],
 
-  /* --- CO2-faktor (ENDAST Företag/BRF, aldrig Privat) ------------------------ */
+  /* --- CO2 factor (ONLY Company/BRF, never Private) ------------------------ */
   co2_faktor: {
     g_per_kwh: 464.79,
     metod: "Nordisk residualmix tillämpad i Sverige, marknadsbaserad (Scope 2), rapportår 2024. Endast Företag/BRF ESG.",
@@ -117,20 +117,20 @@ window.AMPY_LED_DATA = {
     datum: "Rapportår 2024 (verifierad 2026-06-06)."
   },
 
-  /* --- Avdragsklausul per segment (försiktigt, inga falska avdrag) ----------- */
+  /* --- Deduction clause per segment (cautious, no false deductions) ----------- */
   avdrag_copy: {
     foretag: "Priser är ex moms och inkl. installation. Exakt pris får du i offerten.",
     brf:     "Priser är ex moms och inkl. installation. Exakt pris får du i offerten.",
     privat:  "Priser är inkl. moms och installation, efter ROT-avdrag (30 % på arbetet). Exakt pris får du i offerten."
   },
 
-  /* --- Lysrörskrok (endast Företag/BRF) -------------------------------------- */
+  /* --- Fluorescent-tube hook (only Company/BRF) -------------------------------------- */
   lysror_fakta: {
     text: "Visste du? Nya lysrör säljs inte längre — EU förbjöd försäljning av T8- och T5-lysrör 2023. Att byta nu är ofta billigare än att vänta.",
     kalla: "EU Ecodesign/RoHS 2023; Belysningsbranschen (verifierad 2026-06-06)"
   },
 
-  /* --- Segment-defaults ------------------------------------------------------ */
+  /* --- Segment defaults ------------------------------------------------------ */
   defaults: {
     brf: {
       antal: 80, typ_id: "t8_2x36", kontext: "Snitt brinntid",
@@ -152,7 +152,7 @@ window.AMPY_LED_DATA = {
     }
   },
 
-  /* --- Embed-preset per belysningssida (sida → förvalt läge) ----------------- */
+  /* --- Embed preset per lighting page (page → preselected mode) ----------------- */
   embed_preset: {
     "belysning":        { segment: "brf",     typ_id: "t8_2x36",  kontext: "Snitt brinntid" },
     "inomhusbelysning": { segment: "foretag", typ_id: "t8_2x36",  kontext: "Kontor" },
@@ -161,7 +161,7 @@ window.AMPY_LED_DATA = {
     "armaturer":        { segment: "foretag", typ_id: "t8_2x36",  kontext: "Lager" }
   },
 
-  /* --- Geo: region → serviceflagga (datadriven, ej hårdkodat) ---------------- */
+  /* --- Geo: region → service flag (data-driven, not hardcoded) ---------------- */
   geo: {
     default_servicezon: true,
     regioner: { "SE1": true, "SE2": true, "SE3": true, "SE4": true }

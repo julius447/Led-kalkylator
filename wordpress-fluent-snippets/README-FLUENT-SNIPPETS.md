@@ -119,11 +119,4 @@ All business data lives in the **DEL 1/3 — DATALAGER** block near the top of `
 
 ## Regenerating the snippets (maintainers only)
 
-These three files are build artifacts. The source of truth is the five prototype files one folder up (`../styles.css`, `../data.js`, `../engine.js`, `../app.js`, `../index.html`). To regenerate after any change to those:
-
-```
-cd wordpress-fluent-snippets
-node build-snippets.js
-```
-
-That rewrites `1-*.css`, `2-*.js`, `3-*.php` and a local `_preview/index.html` (a WordPress-faithful render used only for our own visual verification — not something you deploy). The build is deterministic: CSS/JS are pure concatenation of the untouched sources, and the PHP embeds the prototype markup verbatim (only the `data-sida` value is templated + escaped).
+These three files are **build artifacts**, generated from the prototype sources. They are self-contained — you do not need the sources or the generator to install. If you ever need to regenerate them (e.g. a number changes), do it in the repo, not from this ZIP: https://github.com/julius447/Led-kalkylator (`wordpress-fluent-snippets/build-snippets.js`, run `node build-snippets.js`). The build is deterministic — CSS/JS are pure concatenation of the sources, and the PHP embeds the prototype markup verbatim (only the `data-sida` value is templated + escaped) — so the output is identical every time.

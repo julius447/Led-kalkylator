@@ -1,17 +1,18 @@
 /* =============================================================================
-   LED-kalkylatorn — MOTOR (Lager 4): ren funktion över datalagret
+   LED-kalkylatorn — ENGINE (Layer 4): pure function over the data layer
    -----------------------------------------------------------------------------
-   calculate(inputs, data) → resultat i FULL precision. Ingen avrundning här
-   (sker bara i renderaren). Inga hårdkodade affärstal — allt slås upp i `data`.
-   Formel (Del 4):
-     årlig_besparing = (W_gammal − W_LED)/1000 × h_dag × 365 × kr_kWh × antal
-     payback_år      = total_LED_kostnad ÷ årlig_besparing
+   calculate(inputs, data) → result in FULL precision. No rounding here
+   (that happens only in the renderer). No hardcoded business figures — everything
+   is looked up in `data`.
+   Formula (Part 4):
+     annual_saving = (W_old − W_LED)/1000 × h_day × 365 × kr_kWh × count
+     payback_years = total_LED_cost ÷ annual_saving
    ============================================================================= */
 (function (global) {
   "use strict";
 
   var DAGAR = 365;
-  var _validated = false; // dubbel valideringsgrind körs en gång, cachas
+  var _validated = false; // double validation gate runs once, then cached
 
   function lookup(list, key, val) {
     if (!Array.isArray(list)) return null;
@@ -19,9 +20,9 @@
     return null;
   }
 
-  /* Dubbel valideringsgrind (Del 3): grind 1 = schema, grind 2 = struktur.
-     Gör att en innehållsredaktör som råkar skriva fel i data.js får ett tydligt
-     fel istället för en tyst NaN-hjälte-siffra. Körs en gång och cachas. */
+  /* Double validation gate (Part 3): gate 1 = schema, gate 2 = structure.
+     Ensures a content editor who accidentally makes a mistake in data.js gets a clear
+     error instead of a silent NaN hero figure. Runs once and is cached. */
   function validateData(data) {
     if (_validated) return;
     if (!data || data.schema_version !== "1.0.0") {
@@ -67,7 +68,7 @@
   /**
    * @param {Object} inputs { segment, typ_id, antal, timmar_dag, elprisomrade, kr_kwh? }
    * @param {Object} data    window.AMPY_LED_DATA
-   * @returns {Object} resultat med full precision + spårbara mellanled
+   * @returns {Object} result with full precision + traceable intermediate steps
    */
   function calculate(inputs, data) {
     validateData(data);
@@ -78,36 +79,36 @@
     var antal = Math.max(0, Number(inputs.antal) || 0);
     var hDag = Math.max(0, Number(inputs.timmar_dag) || 0);
 
-    // Elpris: användarens egen override (>0) vinner; annars valt område; annars nationellt.
+    // Electricity price: user's own override (>0) wins; otherwise the selected area; otherwise national.
     var krKwh = (typeof inputs.kr_kwh === "number" && inputs.kr_kwh > 0)
       ? inputs.kr_kwh
       : (typeof data.elpris[inputs.elprisomrade] === "number"
           ? data.elpris[inputs.elprisomrade]
           : data.elpris.nationellt_default);
 
-    // --- Energi ---
-    var wSparad = Math.max(0, typ.w_gammal - typ.w_led);          // W per enhet
-    var kwhPerEnhetAr = (wSparad / 1000) * hDag * DAGAR;          // kWh/år per enhet
-    var kwhArTotal = kwhPerEnhetAr * antal;                       // kWh/år totalt
+    // --- Energy ---
+    var wSparad = Math.max(0, typ.w_gammal - typ.w_led);          // W per unit
+    var kwhPerEnhetAr = (wSparad / 1000) * hDag * DAGAR;          // kWh/year per unit
+    var kwhArTotal = kwhPerEnhetAr * antal;                       // kWh/year total
 
     var kwhGammalTotal = (typ.w_gammal / 1000) * hDag * DAGAR * antal;
     var kwhLedTotal = (typ.w_led / 1000) * hDag * DAGAR * antal;
 
-    // --- Kronor ---
-    var arligBesparing = kwhArTotal * krKwh;                      // kr/år
+    // --- Kronor (SEK) ---
+    var arligBesparing = kwhArTotal * krKwh;                      // kr/year
     var besparing10ar = arligBesparing * 10;
 
-    // --- Offertpris: total kostnad per armatur (inkl. installation) ---
+    // --- Quote price: total cost per fixture (incl. installation) ---
     var segConf = data.segments[inputs.segment] || {};
     var perEnhetKostnad = typ.kostnad_kr;
     var totalLedKostnad = perEnhetKostnad * antal;
     var paybackAr = arligBesparing > 0 ? (totalLedKostnad / arligBesparing) : null;
 
-    // --- CO2 (endast segment med visa_co2 = Företag/BRF) ---
+    // --- CO2 (only segments with visa_co2 = Företag/BRF) ---
     var visaCo2 = !!segConf.visa_co2;
     var co2KgAr = visaCo2 ? (kwhArTotal * data.co2_faktor.g_per_kwh) / 1000 : null;
 
-    // --- Kumulativ kassaflödeskurva (år 0..H): besparing × år − kostnad ---
+    // --- Cumulative cash-flow curve (year 0..H): saving × year − cost ---
     var HORISONT = (data.horisont_ar && data.horisont_ar > 0) ? data.horisont_ar : 15;
     var cumulative = [];
     for (var y = 0; y <= HORISONT; y++) cumulative.push(arligBesparing * y - totalLedKostnad);
@@ -115,7 +116,7 @@
 
     return {
       inputs: { segment: inputs.segment, typ_id: typ.id, antal: antal, timmar_dag: hDag, elprisomrade: inputs.elprisomrade, kr_kwh: krKwh },
-      // Hjälte + stödtrio (full precision; renderaren avrundar)
+      // Hero + supporting trio (full precision; the renderer rounds)
       arlig_besparing: arligBesparing,
       kwh_ar: kwhArTotal,
       payback_ar: paybackAr,
@@ -123,9 +124,9 @@
       co2_kg_ar: co2KgAr,
       visa_co2: visaCo2,
       horisont_ar: HORISONT,
-      cumulative: cumulative,            // [år0..H] netto kr (för payback-kurvan)
-      netto_horisont: nettoHorisont,     // netto kr vid horisonten (hjälte-siffra)
-      // Spårbara mellanled för transparent breakdown ("Så har vi räknat")
+      cumulative: cumulative,            // [year0..H] net kr (for the payback curve)
+      netto_horisont: nettoHorisont,     // net kr at the horizon (hero figure)
+      // Traceable intermediate steps for a transparent breakdown ("Så har vi räknat")
       breakdown: {
         w_gammal: typ.w_gammal,
         w_led: typ.w_led,

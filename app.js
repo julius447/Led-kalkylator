@@ -1,6 +1,6 @@
 /* =============================================================================
-   LED-kalkylatorn — RENDERARE (Lager 5). Matchar batterikalkylatorns design.
-   Avrundning bara här. Instant value på load. Ingen vägg före svaret.
+   LED calculator — RENDERER (Layer 5). Matches the battery calculator's design.
+   Rounding only here. Instant value on load. No wall before the answer.
    ============================================================================= */
 (function () {
   "use strict";
@@ -14,7 +14,7 @@
   function fmtInt(v) { return (v == null || !isFinite(v)) ? "—" : group(v); }
   function fmtYears(y) { return (y == null || !isFinite(y)) ? "—" : y.toFixed(1).replace(".", ","); }
   function fmtCo2(kg) { return kg >= 1000 ? (kg / 1000).toFixed(1).replace(".", ",") + " ton" : Math.round(kg) + " kg"; }
-  // Scopa ID-uppslag till widgeten → krockar inte med andra element/ID på en Bricks-sida
+  // Scope ID lookups to the widget → avoids clashing with other elements/IDs on a Bricks page
   var ROOT = null;
   function $(id) {
     if (ROOT) return ROOT.id === id ? ROOT : ROOT.querySelector('[id="' + id + '"]');
@@ -22,9 +22,9 @@
   }
   function el(tag, cls, txt) { var n = document.createElement(tag); if (cls) n.className = cls; if (txt != null) n.textContent = txt; return n; }
   function setText(id, t) { var n = $(id); if (n) n.textContent = t; }
-  function $all(sel) { return (ROOT || document).querySelectorAll(sel); } // scopat → inga krockar med andra widgets
+  function $all(sel) { return (ROOT || document).querySelectorAll(sel); } // scoped → no clashes with other widgets
   function clamp(n, lo, hi) { return Math.min(hi, Math.max(lo, n)); }
-  var endActiveDrag = null; // sätts under pågående slider-drag (för global avbrott)
+  var endActiveDrag = null; // set during an ongoing slider drag (for global cancellation)
 
   // --- state --------------------------------------------------------------
   var state = { segment: "brf", typ_id: null, antal: null, timmar_dag: null, elprisomrade: "SE3", _kontext: null };
@@ -32,7 +32,7 @@
   var antalSlider = null, brinntidSlider = null;
   var dragging = false, renderQueued = false;
 
-  // Sammanför många slider-events till EN render per animationsruta (smooth drag)
+  // Coalesce many slider events into ONE render per animation frame (smooth drag)
   function scheduleRender() {
     if (renderQueued) return; renderQueued = true;
     requestAnimationFrame(function () { renderQueued = false; render(); });
@@ -40,7 +40,7 @@
 
   // --- lookups ------------------------------------------------------------
   function lookup(list, k, v) { for (var i = 0; i < list.length; i++) if (list[i][k] === v) return list[i]; return null; }
-  // Segment-medveten: "Snitt brinntid" finns per segment med olika timmar
+  // Segment-aware: "Snitt brinntid" exists per segment with different hours
   function findBrinntid(k) { return DATA.brinntid_default.filter(function (b) { return b.kontext === k && b.segment === state.segment; })[0]; }
   function typerForSegment(seg) { var kat = seg === "privat" ? "privat" : "kommersiell"; return DATA.watt_tabell.filter(function (t) { return t.kat === kat; }); }
   function kontexterForSegment(seg) { return DATA.brinntid_default.filter(function (b) { return b.segment === seg; }); }
@@ -52,9 +52,9 @@
     var seg = (preset && preset.segment) || state.segment;
     var d = DATA.defaults[seg];
     state.segment = seg;
-    // Lita inte blint på preset: typ_id måste tillhöra segmentets kategori och
-    // kontext måste finnas för segmentet — annars faller vi tillbaka på defaults
-    // (en felaktig data-sida ska aldrig desynca UI och matematik tyst).
+    // Don't trust the preset blindly: typ_id must belong to the segment's category and
+    // kontext must exist for the segment — otherwise we fall back on the defaults
+    // (a wrong data-sida must never silently desync the UI and the math).
     var kat = seg === "privat" ? "privat" : "kommersiell";
     var pt = preset && lookup(DATA.watt_tabell, "id", preset.typ_id);
     state.typ_id = (pt && pt.kat === kat) ? preset.typ_id : d.typ_id;
@@ -99,8 +99,8 @@
       v = Math.round(v * 1000) / 1000;
       value = v; position(v); if (fire) o.onInput(v);
     }
-    // Mät thumben varje gång → finger-till-värde matchar exakt det som ritas,
-    // även om host-sidan saknar 62.5%-basen eller ändrar root font-size (iOS Större text).
+    // Measure the thumb every time → finger-to-value matches exactly what is drawn,
+    // even if the host page lacks the 62.5% base or changes the root font-size (iOS Larger Text).
     function pickByX(cx) {
       var r = slider.getBoundingClientRect();
       var THUMB = thumb.getBoundingClientRect().width || 24, GUT = THUMB / 2;
@@ -111,7 +111,7 @@
     var drag = false;
     function endDrag() {
       if (!drag) return; drag = false; dragging = false; endActiveDrag = null;
-      // Ta bort skyddsnätet på window igen (läggs bara till under aktivt drag → ingen läcka)
+      // Remove the safety net on window again (added only during an active drag → no leak)
       window.removeEventListener("pointerup", endDrag);
       window.removeEventListener("pointercancel", endDrag);
       slider.classList.remove("is-dragging"); scheduleRender();
@@ -119,8 +119,8 @@
     slider.addEventListener("pointerdown", function (e) {
       drag = true; dragging = true; endActiveDrag = endDrag; slider.classList.add("is-dragging");
       try { slider.setPointerCapture(e.pointerId); } catch (x) {}
-      // Skyddsnät: om setPointerCapture misslyckas och fingret släpps UTANFÖR reglaget
-      // fångar vi släppet på window så draget aldrig fastnar. Tas bort i endDrag.
+      // Safety net: if setPointerCapture fails and the finger is released OUTSIDE the slider
+      // we catch the release on window so the drag never gets stuck. Removed in endDrag.
       window.addEventListener("pointerup", endDrag);
       window.addEventListener("pointercancel", endDrag);
       setVal(pickByX(e.clientX), true); e.preventDefault();
@@ -243,14 +243,14 @@
     var t0 = null, dur = 280;
     function step(ts) { if (!t0) t0 = ts; var t = Math.min((ts - t0) / dur, 1); var e = 1 - Math.pow(1 - t, 3); node.textContent = fmt(from + (target - from) * e); if (t < 1) requestAnimationFrame(step); else node.textContent = fmt(target); }
     requestAnimationFrame(step);
-    // Skyddsnät: garantera slutvärdet även om rAF strypts (bakgrundsflik)
+    // Safety net: guarantee the final value even if rAF was throttled (background tab)
     setTimeout(function () { node.textContent = fmt(target); }, dur + 80);
   }
 
-  // Hjälte = årlig besparing (siffran i fokus)
+  // Hero = annual saving (the number in focus)
   function renderHero(r) { animateNumber("hero", r.arlig_besparing, fmtKr, "heroValue"); }
 
-  // Tre poster: energi du kapar · CO2 du sparar (privat → kr/mån) · uppskattad kostnad
+  // Three items: energy you cut · CO2 you save (private → kr/mån) · estimated cost
   function renderStats(r) {
     var b = r.breakdown, privat = state.segment === "privat";
     animateNumber("kwh", r.kwh_ar, fmtInt, "statKwh");
@@ -275,7 +275,7 @@
     $("statCostSub").textContent = "≈ " + fmtKr(b.per_enhet_kostnad) + " kr/" + (privat ? "ljuskälla" : "armatur") + " · inkl installation";
   }
 
-  // Före/efter — elkostnad per år (ersätter payback-kurvan)
+  // Before/after — electricity cost per year (replaces the payback curve)
   function renderCompare(r) {
     var b = r.breakdown, kr = b.kr_kwh;
     var costNow = b.kwh_gammal_total * kr, costLed = b.kwh_led_total * kr;
@@ -283,7 +283,7 @@
     $("costLed").textContent = fmtKr(costLed) + " kr";
     var max = costNow > 0 ? costNow : 1;
     $("barNow").style.width = "100%";
-    $("barLed").style.width = Math.max(4, costLed / max * 100) + "%"; // syns även när besparingen är störst
+    $("barLed").style.width = Math.max(4, costLed / max * 100) + "%"; // visible even when the saving is largest
     var pct = costNow > 0 ? Math.round((1 - costLed / costNow) * 100) : 0;
     $("compareCaption").innerHTML = "LED drar <strong>" + pct + " % mindre</strong> — skillnaden är din besparing.";
   }
@@ -291,7 +291,7 @@
   // --- methodology --------------------------------------------------------
   function renderMethodology(r) {
     var stack = $("methodologyStack");
-    if (stack.dataset.seg === state.segment && stack.children.length) { return; } // statisk per segment
+    if (stack.dataset.seg === state.segment && stack.children.length) { return; } // static per segment
     stack.dataset.seg = state.segment; stack.textContent = "";
     var privat = state.segment === "privat";
     var unit = privat ? "ljuskälla" : "armatur";
@@ -339,7 +339,7 @@
     $("typButton").onclick = function (e) { e.stopPropagation(); openSel($("typSelector").getAttribute("aria-expanded") !== "true"); };
     document.addEventListener("click", function (e) { if (!$("typSelector").contains(e.target)) closeSel(false); });
     document.addEventListener("keydown", function (e) { if (e.key === "Escape" && $("typSelector").getAttribute("aria-expanded") === "true") closeSel(true); });
-    // CTA → fäll ut lead-formuläret (ersätter knappen; en primär kvar)
+    // CTA → unfold the lead form (replaces the button; one primary remains)
     $("ctaBtn").onclick = function () {
       track("cta_klick", { segment: state.segment, besparing: bucket((lastResult || {}).arlig_besparing || 0) });
       $("ctaBtn").classList.add("is-hidden");
@@ -350,7 +350,7 @@
     $("leadForm").onsubmit = function (e) {
       e.preventDefault();
       var btn = $("leadSubmit");
-      if (btn.disabled) return;             // dubbel-submit-skydd
+      if (btn.disabled) return;             // double-submit protection
       if ($("leadHp").value) return;        // honeypot
       ["leadNamn", "leadEpost", "leadTel", "leadPostnr", "leadConsent"].forEach(function (id) { var n = $(id); n.classList.remove("is-invalid"); n.removeAttribute("aria-invalid"); });
       var namn = $("leadNamn").value.trim(), epost = $("leadEpost").value.trim();
@@ -368,7 +368,7 @@
         typ_id: state.typ_id, antal: state.antal, timmar_dag: state.timmar_dag, elprisomrade: state.elprisomrade,
         arlig_besparing: Math.round((lastResult || {}).arlig_besparing || 0),
         uppskattad_kostnad: Math.round(((lastResult || {}).breakdown || {}).total_led_kostnad || 0),
-        company_url: $("leadHp").value, // honeypot — alltid tomt för riktiga användare; servern släpper bort ifyllda
+        company_url: $("leadHp").value, // honeypot — always empty for real users; the server drops filled-in ones
         samtycke: true, samtycke_tid: nowIso()
       };
       track("lead_submit", { segment: state.segment, besparing: bucket(payload.arlig_besparing) });
@@ -380,22 +380,22 @@
         fetch(ep, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
           .then(function (res) { if (!res.ok) { fail(); return; } done(); }).catch(fail);
       } else if (DATA.lead && DATA.lead.fallback_mailto) {
-        // Öppna mejlklienten via en tillfällig länk — navigerar INTE bort värdsidan.
-        // (window.location.href = mailto: river ner widgeten i en iframe/Bricks-embed.)
+        // Open the mail client via a temporary link — does NOT navigate away from the host page.
+        // (window.location.href = mailto: tears down the widget in an iframe/Bricks embed.)
         try {
           var a = document.createElement("a");
           a.href = buildMailto(payload, DATA.lead.fallback_mailto);
           a.target = "_blank"; a.rel = "noopener";
           (ROOT || document.body).appendChild(a); a.click(); a.remove();
         } catch (x) {}
-        // Ärlig text: utan backend kan vi inte bekräfta att mejlet faktiskt gick iväg.
+        // Honest text: without a backend we cannot confirm that the email actually went out.
         leadMsg(true, "Ett mejl öppnas i din e-postklient — skicka det så hör vår belysningsexpert av sig. Händer inget: mejla offert@ampy.se.");
         btn.textContent = "Öppnade mejl ✓";
       } else { fail(); }
     };
     ["leadNamn", "leadEpost", "leadTel", "leadPostnr"].forEach(function (id) { $(id).addEventListener("input", function () { this.classList.remove("is-invalid"); this.removeAttribute("aria-invalid"); }); });
     $("leadConsent").addEventListener("change", function () { this.classList.remove("is-invalid"); });
-    // Avbryt → tillbaka till den enda CTA-knappen (formuläret kan annars knuffa svaret ur bild på mobil)
+    // Cancel → back to the single CTA button (otherwise the form can push the answer off-screen on mobile)
     $("leadCancel").onclick = function () { resetLead(); var c = $("ctaBtn"); if (c) c.focus(); };
     wireTooltips();
   }
@@ -414,7 +414,7 @@
 
   function leadMsg(ok, text) {
     var m = $("leadMsg"); m.textContent = text;
-    m.setAttribute("role", ok ? "status" : "alert"); // ok = artig, fel = assertiv
+    m.setAttribute("role", ok ? "status" : "alert"); // ok = polite, error = assertive
     m.className = "ampy-calc__lead-msg " + (ok ? "ampy-calc__lead-msg--ok" : "ampy-calc__lead-msg--err");
   }
   function resetLead() {
@@ -422,16 +422,16 @@
     f.classList.add("is-hidden"); $("ctaBtn").classList.remove("is-hidden");
     $("leadSubmit").disabled = false; $("leadSubmit").textContent = "Skicka offertförfrågan";
     var m = $("leadMsg"); m.className = "ampy-calc__lead-msg is-hidden"; m.textContent = "";
-    // Rensa felmarkeringar så ett tidigare fel inte hänger kvar rött efter segmentbyte
+    // Clear error markings so a previous error doesn't stay red after a segment change
     ["leadNamn", "leadEpost", "leadTel", "leadPostnr", "leadConsent"].forEach(function (id) {
       var n = $(id); if (!n) return; n.classList.remove("is-invalid"); n.removeAttribute("aria-invalid");
     });
   }
 
-  // Flytande info-tooltip (visas vid hover/fokus/tap på "i"-knappar)
+  // Floating info tooltip (shown on hover/focus/tap of the "i" buttons)
   function wireTooltips() {
     var tip = el("div", "ampy-calc__tooltip"); tip.style.display = "none";
-    $("ampyLed").appendChild(tip); // inuti .ampy-calc så tokens (var) gäller
+    $("ampyLed").appendChild(tip); // inside .ampy-calc so the tokens (var) apply
     var current = null;
     function show(btn) {
       current = btn; tip.textContent = btn.dataset.tip || "";
@@ -445,12 +445,12 @@
     }
     function hide() { current = null; tip.style.display = "none"; }
     $all(".ampy-calc__tip").forEach(function (btn) {
-      btn.setAttribute("aria-label", btn.dataset.tip || "Mer info"); // hela texten är knappens namn för skärmläsare
+      btn.setAttribute("aria-label", btn.dataset.tip || "Mer info"); // the full text is the button's name for screen readers
       btn.addEventListener("mouseenter", function () { show(btn); });
       btn.addEventListener("mouseleave", hide);
       btn.addEventListener("focus", function () { show(btn); });
       btn.addEventListener("blur", hide);
-      // Tap visar alltid (toggla inte) — annars dolde focus+click varandra (dubbeltryck på mobil)
+      // Tap always shows (don't toggle) — otherwise focus+click hid each other (double-tap on mobile)
       btn.addEventListener("click", function (e) { e.preventDefault(); e.stopPropagation(); show(btn); });
     });
     window.addEventListener("scroll", hide, true);
@@ -460,7 +460,7 @@
     document.addEventListener("click", function (e) { if (current && !(e.target.classList && e.target.classList.contains("ampy-calc__tip"))) hide(); });
   }
 
-  // --- telemetri ----------------------------------------------------------
+  // --- telemetry ----------------------------------------------------------
   function captureMeta() {
     try { var s = sessionStorage.getItem("ampy_led_meta"); if (s) { meta = JSON.parse(s); return; } } catch (e) {}
     try {
@@ -475,7 +475,7 @@
     if (berakningTimer) clearTimeout(berakningTimer);
     berakningTimer = setTimeout(function () {
       track("berakning", { segment: state.segment, besparing_spann: bucket(r.arlig_besparing) });
-      // En lugn sammanfattning till skärmläsare (en gång per settle, ej per drag-frame)
+      // A calm summary for screen readers (once per settle, not per drag frame)
       setText("resultSummary", "Årlig besparing " + fmtKr(r.arlig_besparing) + " kronor per år.");
     }, 600);
   }
@@ -484,8 +484,8 @@
   // --- init ---------------------------------------------------------------
   function init() {
     ROOT = document.querySelector(".ampy-calc");
-    // Allt som läser DATA (applyPreset/buildControls) körs INNAN render()s try/catch.
-    // Validera först + omslut hela kedjan → ett datafel visar vänliga felet, aldrig en vit widget.
+    // Everything that reads DATA (applyPreset/buildControls) runs BEFORE render()'s try/catch.
+    // Validate first + wrap the whole chain → a data error shows the friendly error, never a blank widget.
     try {
       if (window.AmpyLED && AmpyLED.validateData) AmpyLED.validateData(DATA);
       captureMeta(); applyPreset(); wireStatic(); buildControls(); render();
@@ -493,7 +493,7 @@
       renderError();
       return;
     }
-    // Avbryt strandad slider-drag om sidan tappar fokus/döljs (iOS-avbrott)
+    // Cancel a stranded slider drag if the page loses focus/is hidden (iOS interruption)
     window.addEventListener("blur", function () { if (endActiveDrag) endActiveDrag(); });
     document.addEventListener("visibilitychange", function () { if (document.hidden && endActiveDrag) endActiveDrag(); });
     track("calc_view", { segment: state.segment, elprisomrade: state.elprisomrade });
