@@ -9,7 +9,7 @@ This ZIP is the **WordPress-native, paste-ready** version of Ampy's LED savings 
 | File | What it is |
 |------|-----------|
 | **`README-FLUENT-SNIPPETS.md`** | **The install guide — read this.** 4 steps, ~10 minutes. |
-| `HANDOVER.md` | Full reference: every number, the formulas + a worked example, GDPR, analytics, accessibility, QA. Read it to understand *what the tool does*. |
+| `HANDOVER.md` | **Reference only** — every number, the formulas + a worked example, GDPR, analytics, accessibility, QA. Read it to understand *what the tool does*. ⚠️ Ignore its install steps (§0/§4/§14 describe an older theme-enqueue path); install via `README-FLUENT-SNIPPETS.md`. |
 | `1-ampy-led-styles.css` | Snippet 1 of 3 — paste as a Fluent **CSS** snippet. |
 | `2-ampy-led-scripts.js` | Snippet 2 of 3 — paste as a Fluent **JS** snippet. |
 | `3-ampy-led-shortcode.php` | Snippet 3 of 3 — paste as a Fluent **PHP** snippet. |

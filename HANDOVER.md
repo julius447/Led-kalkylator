@@ -1,6 +1,11 @@
 # LED-kalkylatorn — Developer Handover (Chris + AI agent)
 
-**Read this first. It is the single source of truth.** Everything you need to ship the tool into Bricks/WordPress is here: files, exact data, formulas, the one thing to wire (the lead endpoint), copy-paste PHP, the QA checklist, and a precise task list for your Claude Code agent.
+> ## ⚠️ INSTALL METHOD SUPERSEDED — read this first
+> **This package ships via Fluent Snippets. For installation, follow [`README-FLUENT-SNIPPETS.md`](README-FLUENT-SNIPPETS.md)** (3 Fluent Snippets + a Bricks **Shortcode** element). **Do NOT follow the install steps in this file** — §0 TL;DR steps 2–3, §4 (Enqueue), §5's "put four files in the theme", and §14 describe an older theme/plugin **enqueue** path that does **not** apply here, and they reference loose source files (`data.js`, `engine.js`, `app.js`, `styles.css`, `engine.test.js`, the research docs) that are **not in this ZIP** — they live in the [repo](https://github.com/julius447/Led-kalkylator) and you don't need them to install.
+>
+> **Use THIS document only as a reference for what the tool *does*:** the exact numbers (§6), the formulas + worked example (§7), behaviour/presets (§8), GDPR (§10), analytics (§11), accessibility (§12) and the acceptance numbers in the QA checklist (§13). The lead-endpoint PHP in §5 is superseded by the ready-made endpoint in snippet 3 — see the README.
+
+**What this file is.** The complete behaviour/data reference for the tool: exact data, formulas, the QA acceptance numbers, GDPR, analytics. *(For how to install, see the README above — not the enqueue steps below.)*
 
 - **Live reference (must look/behave identical after embed):** https://julius447.github.io/Led-kalkylator/
 - **Repo:** https://github.com/julius447/Led-kalkylator

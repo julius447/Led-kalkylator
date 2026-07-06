@@ -653,7 +653,7 @@ window.AMPY_LED_DATA = {
     disc.appendChild(el("p", null, "Elpris: medvetet lågt schablonpris per elprisområde (SE1–SE4). Watt-, kostnads- och timantaganden är konservativt valda. Källor: research-dossier (2026)."));
   }
 
-  // --- statiska handlers --------------------------------------------------
+  // --- static handlers ----------------------------------------------------
   function wireStatic() {
     $all('[id="segSegment"] button').forEach(function (btn) {
       btn.onclick = function () {

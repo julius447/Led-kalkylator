@@ -69,7 +69,7 @@ An unknown `sida` safely falls back to the BRF default. That's it — the calcul
 
 **Option A — mailto (default, zero backend).** Do nothing. On submit the form opens the visitor's mail client with the full lead pre-filled to `offert@ampy.se`. No lead is lost; nothing to host.
 
-**Option B — capture server-side (recommended for volume/CRM).** In the **JS snippet (`2-ampy-led-scripts.js`)**, in the **`DEL 1/3 — DATALAGER`** block near the top (search the snippet for the string **`lead: { endpoint:`** — there is exactly one hit), find:
+**Option B — capture server-side (recommended for volume/CRM).** In the **JS snippet (`2-ampy-led-scripts.js`)**, in the **`PART 1/3 — DATA LAYER`** block near the top (search the snippet for the string **`lead: { endpoint:`** — there is exactly one hit), find:
 
 ```js
 lead: { endpoint: null, fallback_mailto: "offert@ampy.se" },
@@ -113,7 +113,7 @@ If the whole tool looks ~1.6× too big → the CSS snippet's `html{font-size:62.
 
 ## Editing later (numbers, prices, copy)
 
-All business data lives in the **DEL 1/3 — DATALAGER** block near the top of `2-ampy-led-scripts.js` (the `data.js` section). Change a price/watt/burn-hour/default there, re-save the JS snippet. The engine **validates** the data on load and shows the friendly error (not a blank widget) if a value is malformed. Never edit numbers in the engine block. After any change, the acceptance numbers above must still hold unless you changed the inputs that drive them.
+All business data lives in the **PART 1/3 — DATA LAYER** block near the top of `2-ampy-led-scripts.js` (the `data.js` section). Change a price/watt/burn-hour/default there, re-save the JS snippet. The engine **validates** the data on load and shows the friendly error (not a blank widget) if a value is malformed. Never edit numbers in the engine block. After any change, the acceptance numbers above must still hold unless you changed the inputs that drive them.
 
 ---
 
