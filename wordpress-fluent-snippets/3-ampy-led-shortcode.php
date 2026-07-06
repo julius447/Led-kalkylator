@@ -1,0 +1,271 @@
+<?php
+/**
+ * ==========================================================================
+ *  AMPY LED-KALKYLATOR — SNIPPET 3 av 3: PHP + HTML (shortcode + lead-endpoint)
+ *  Klistra in som en Fluent Snippets-snippet av typ 'PHP' (kör överallt, eller
+ *  villkorat till kalkylator-sidorna). Placerar INGEN CSS/JS — det gör snippet
+ *  1 och 2. Denna ger dig:
+ *    • en shortcode  [ampy_led_kalkylator]  som skriver ut EXAKT samma markup
+ *      som prototypen (lägg den i ett Bricks 'Shortcode'-element).
+ *      Byt förval per sida:  [ampy_led_kalkylator sida="spotlight"]
+ *      Giltiga sida-värden: belysning · inomhusbelysning · utomhusbelysning ·
+ *      spotlight · armaturer  (se embed_preset i snippet 2).
+ *    • en REST-endpoint  POST /wp-json/ampy/v1/led-offert  för lead-fångst
+ *      (valfritt — se snippet 2, 'endpoint'). Honeypot + rate-limit + validering.
+ *  Genererad av build-snippets.js — markupen är index.html VERBATIM.
+ * ========================================================================== */
+
+if ( ! defined( 'ABSPATH' ) ) { exit; }
+
+/* --- Shortcode: [ampy_led_kalkylator sida="belysning"] --------------------- */
+add_shortcode( 'ampy_led_kalkylator', function ( $atts ) {
+	$a = shortcode_atts( array( 'sida' => 'belysning' ), $atts, 'ampy_led_kalkylator' );
+	$markup = <<<'HTML'
+<div class="ampy-calc" id="ampyLed" data-sida="__AMPY_SIDA__">
+    <div class="ampy-calc__container">
+
+      <header class="ampy-calc__header">
+        <h1>Vad sparar du på att byta till LED?</h1>
+      </header>
+
+      <div class="ampy-calc__main">
+
+        <!-- VÄNSTER: inputs -->
+        <section class="ampy-calc__card" aria-label="Dina värden">
+          <div class="ampy-calc__tier ampy-calc__tier--primary">
+            <span class="ampy-calc__tier-label">Vad du byter</span>
+
+            <div class="ampy-calc__field">
+              <span class="ampy-calc__field-label-tiny">Vem räknar vi för?
+                <button type="button" class="ampy-calc__tip" data-tip="BRF, företag och privatperson räknas olika — vi anpassar armaturtyp, brinntid och pris efter din profil.">i</button>
+              </span>
+              <div class="ampy-calc__segmented" role="group" aria-label="Segment" id="segSegment">
+                <button type="button" class="ampy-calc__segmented-option" data-seg="brf" aria-pressed="true">BRF</button>
+                <button type="button" class="ampy-calc__segmented-option" data-seg="foretag" aria-pressed="false">Företag</button>
+                <button type="button" class="ampy-calc__segmented-option" data-seg="privat" aria-pressed="false">Privat</button>
+              </div>
+              <p class="ampy-calc__field-hint" id="segCaption">Vi räknar för föreningens gemensamma belysning.</p>
+            </div>
+
+            <div class="ampy-calc__field ampy-calc__field--prominent">
+              <label class="ampy-calc__field-label-tiny" id="typLabel">Vad byter du från?
+                <button type="button" class="ampy-calc__tip" data-tip="Välj din nuvarande ljuskälla. Vi jämför mot en likvärdig LED-ersättning med samma ljus.">i</button>
+              </label>
+              <div class="ampy-calc__selector" id="typSelector" aria-expanded="false">
+                <button type="button" class="ampy-calc__selector-button" id="typButton" aria-haspopup="listbox">
+                  <span class="ampy-calc__selector-img">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.7.8 1 1.3 1 2.5h6c0-1.2.3-1.7 1-2.5A6 6 0 0 0 12 3Z"/></svg>
+                  </span>
+                  <span class="ampy-calc__selector-text">
+                    <span class="ampy-calc__selector-name" id="typName">—</span>
+                    <span class="ampy-calc__selector-best" id="typMeta">—</span>
+                  </span>
+                  <svg class="ampy-calc__selector-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                </button>
+                <ul class="ampy-calc__selector-list" id="typList" role="listbox" aria-label="Ljuskälla"></ul>
+              </div>
+            </div>
+
+            <div class="ampy-calc__field ampy-calc__field--prominent">
+              <label class="ampy-calc__field-label-tiny" id="antalLabel">Antal armaturer
+                <button type="button" class="ampy-calc__tip" data-tip="Hur många armaturer eller ljuskällor bytet gäller. Dra i reglaget eller klicka på en siffra.">i</button>
+              </label>
+              <span class="ampy-calc__value-prominent ampy-calc__t-mono">
+                <span id="antalValue">—</span><span class="ampy-calc__value-unit" id="antalUnit">st</span>
+              </span>
+              <div id="antalSlider"></div>
+            </div>
+          </div>
+
+          <div class="ampy-calc__tier">
+            <span class="ampy-calc__tier-label">Din situation</span>
+
+            <div class="ampy-calc__field">
+              <label class="ampy-calc__field-label" for="inKontext">Var sitter belysningen?
+                <button type="button" class="ampy-calc__tip" data-tip="Styr brinntiden. ”Snitt brinntid” är ett genomsnitt över alla armaturer — bra när bytet omfattar flera utrymmen.">i</button>
+              </label>
+              <select class="ampy-calc__select" id="inKontext"></select>
+            </div>
+
+            <div class="ampy-calc__field ampy-calc__field--prominent">
+              <label class="ampy-calc__field-label-tiny">Brinntid
+                <button type="button" class="ampy-calc__tip" data-tip="Timmar per dygn som belysningen lyser, i snitt över året. ”Snitt brinntid” tar ett genomsnitt över alla armaturer i olika utrymmen.">i</button>
+              </label>
+              <span class="ampy-calc__value-prominent ampy-calc__value-prominent--sm ampy-calc__t-mono">
+                <span id="brinntidValue">—</span><span class="ampy-calc__value-unit">h/dygn</span>
+              </span>
+              <div id="brinntidSlider"></div>
+            </div>
+
+            <div class="ampy-calc__field">
+              <label class="ampy-calc__field-label">Elprisområde
+                <button type="button" class="ampy-calc__tip" data-tip="Vi använder ett medvetet lågt schablonpris per område (SE1–SE4) — din verkliga besparing blir snarare högre.">i</button>
+              </label>
+              <div class="ampy-calc__segmented" role="group" aria-label="Elprisområde" id="segRegion">
+                <button type="button" class="ampy-calc__segmented-option" data-region="SE1" aria-pressed="false">SE1</button>
+                <button type="button" class="ampy-calc__segmented-option" data-region="SE2" aria-pressed="false">SE2</button>
+                <button type="button" class="ampy-calc__segmented-option" data-region="SE3" aria-pressed="true">SE3</button>
+                <button type="button" class="ampy-calc__segmented-option" data-region="SE4" aria-pressed="false">SE4</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- HÖGER: resultat -->
+        <div class="ampy-calc__result-stack">
+          <section class="ampy-calc__card ampy-calc__card--surface" aria-label="Ditt resultat">
+            <h2 class="sr-only">Ditt resultat</h2>
+            <p class="sr-only" id="resultSummary" aria-live="polite"></p>
+
+            <div class="ampy-calc__hero">
+              <span class="ampy-calc__hero-eyebrow">Årlig besparing</span>
+              <span class="ampy-calc__hero-value ampy-calc__t-mono">
+                <span id="heroValue">—</span><span class="ampy-calc__hero-unit">kr/år</span>
+              </span>
+              <span class="ampy-calc__hero-sub" id="heroSub">Så mycket lägre kan elkostnaden bli — varje år, så länge belysningen lyser.</span>
+            </div>
+
+            <div class="ampy-calc__trio">
+              <span class="ampy-calc__trio-label">Energi du kapar</span>
+              <span class="ampy-calc__trio-value ampy-calc__t-mono"><span id="statKwh">—</span><span class="ampy-calc__trio-unit">kWh/år</span></span>
+              <span class="ampy-calc__trio-sub" id="statKwhSub">—</span>
+
+              <span class="ampy-calc__trio-label" id="statBLabel">CO₂ du sparar</span>
+              <span class="ampy-calc__trio-value ampy-calc__t-mono"><span id="statB">—</span><span class="ampy-calc__trio-unit" id="statBUnit">/år</span></span>
+              <span class="ampy-calc__trio-sub" id="statBSub">—</span>
+
+              <span class="ampy-calc__trio-label">Uppskattad kostnad</span>
+              <span class="ampy-calc__trio-value ampy-calc__t-mono"><span id="statCost">—</span><span class="ampy-calc__trio-unit">kr</span></span>
+              <span class="ampy-calc__trio-sub" id="statCostSub">—</span>
+            </div>
+
+            <hr class="ampy-calc__internal-divider" />
+
+            <!-- Före/efter — elkostnad per år (ersätter payback-kurvan) -->
+            <div class="ampy-calc__compare">
+              <span class="ampy-calc__evidence-label">Vad belysningen kostar per år</span>
+              <div class="ampy-calc__compare-row ampy-calc__compare-row--now">
+                <span class="ampy-calc__compare-key">I dag</span>
+                <span class="ampy-calc__compare-track"><span class="ampy-calc__compare-bar ampy-calc__compare-bar--now" id="barNow"></span></span>
+                <span class="ampy-calc__compare-val ampy-calc__t-mono" id="costNow">—</span>
+              </div>
+              <div class="ampy-calc__compare-row ampy-calc__compare-row--led">
+                <span class="ampy-calc__compare-key">Med LED</span>
+                <span class="ampy-calc__compare-track"><span class="ampy-calc__compare-bar ampy-calc__compare-bar--led" id="barLed"></span></span>
+                <span class="ampy-calc__compare-val ampy-calc__t-mono" id="costLed">—</span>
+              </div>
+              <p class="ampy-calc__evidence-caption" id="compareCaption">—</p>
+            </div>
+
+            <hr class="ampy-calc__internal-divider" />
+
+            <div class="ampy-calc__cta-stack">
+              <button class="ampy-calc__btn ampy-calc__btn--primary ampy-calc__btn--lg ampy-calc__btn--block" id="ctaBtn" type="button">
+                <span id="ctaLabel">Få en skräddarsydd offert</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+              </button>
+
+              <!-- Lead-formulär: fälls ut vid klick på CTA (värde först, ingen vägg) -->
+              <form class="ampy-calc__lead-form is-hidden" id="leadForm" novalidate>
+                <p class="ampy-calc__lead-intro">Vår belysningsexpert hör av sig med ett offertförslag, oftast inom en arbetsdag.</p>
+                <div class="ampy-calc__lead-grid">
+                  <div class="ampy-calc__lead-field">
+                    <label for="leadNamn">Namn</label>
+                    <input id="leadNamn" name="namn" type="text" autocomplete="name" maxlength="80" aria-required="true" required />
+                  </div>
+                  <div class="ampy-calc__lead-field">
+                    <label for="leadEpost">E-post</label>
+                    <input id="leadEpost" name="epost" type="email" autocomplete="email" inputmode="email" maxlength="120" aria-required="true" required />
+                  </div>
+                  <div class="ampy-calc__lead-field">
+                    <label for="leadTel">Telefon</label>
+                    <input id="leadTel" name="telefon" type="tel" autocomplete="tel" inputmode="tel" maxlength="20" aria-required="true" required />
+                  </div>
+                  <div class="ampy-calc__lead-field">
+                    <label for="leadPostnr">Postnummer</label>
+                    <input id="leadPostnr" name="postnummer" type="text" inputmode="numeric" autocomplete="postal-code" maxlength="6" pattern="\d{3}\s?\d{2}" aria-required="true" required />
+                  </div>
+                </div>
+                <div class="ampy-calc__hp" aria-hidden="true">
+                  <label>Lämna detta fält tomt<input id="leadHp" name="company_url" type="text" tabindex="-1" autocomplete="off" /></label>
+                </div>
+                <label class="ampy-calc__lead-consent">
+                  <input id="leadConsent" name="samtycke" type="checkbox" aria-required="true" required />
+                  <span>Jag godkänner att Ampy sparar mina uppgifter för att kontakta mig med en offert, enligt <a href="https://ampy.se/integritetspolicy" target="_blank" rel="noopener">integritetspolicyn</a>.</span>
+                </label>
+                <button class="ampy-calc__btn ampy-calc__btn--primary ampy-calc__btn--block" id="leadSubmit" type="submit">Skicka offertförfrågan</button>
+                <p class="ampy-calc__lead-fine">Kostnadsfritt och utan förbindelse. <button type="button" class="ampy-calc__lead-cancel" id="leadCancel">Avbryt</button></p>
+                <p class="ampy-calc__lead-msg is-hidden" id="leadMsg" role="alert"></p>
+              </form>
+            </div>
+          </section>
+
+          <section class="ampy-calc__methodology" id="methodology" aria-label="Så har vi räknat">
+            <h2 class="sr-only">Så har vi räknat</h2>
+            <details class="ampy-calc__disclosure">
+              <summary class="ampy-calc__disclosure-summary">Så har vi räknat</summary>
+              <div class="ampy-calc__disclosure-content">
+                <div class="ampy-calc__methodology-stack" id="methodologyStack"></div>
+                <div class="ampy-calc__disclaimers" id="disclaimers"></div>
+              </div>
+            </details>
+          </section>
+        </div>
+
+      </div>
+    </div>
+  </div>
+HTML;
+	return str_replace( '__AMPY_SIDA__', esc_attr( $a['sida'] ), $markup );
+} );
+
+/* --- Lead-endpoint (valfritt): POST /wp-json/ampy/v1/led-offert ------------
+   Samma-origin. Sätt data.lead.endpoint = "/wp-json/ampy/v1/led-offert" i
+   snippet 2 för att aktivera. Lämnar du endpoint = null används mailto-fallback
+   och denna route rörs aldrig. */
+add_action( 'rest_api_init', function () {
+	register_rest_route( 'ampy/v1', '/led-offert', array(
+		'methods'             => 'POST',
+		'permission_callback' => '__return_true', // publikt formulär; skyddat i callbacken
+		'callback'            => function ( WP_REST_Request $req ) {
+			$d = $req->get_json_params();
+
+			// 1) Honeypot: ifylld company_url = bot. Låtsas OK, skicka inget.
+			if ( ! empty( $d['company_url'] ) ) { return new WP_REST_Response( array( 'ok' => true ), 200 ); }
+
+			// 2) Rate-limit per IP: max 5 skick / 10 min.
+			$ip  = isset( $_SERVER['REMOTE_ADDR'] ) ? $_SERVER['REMOTE_ADDR'] : '';
+			$key = 'ampy_led_' . md5( $ip );
+			$n   = (int) get_transient( $key );
+			if ( $n >= 5 ) { return new WP_REST_Response( array( 'ok' => false ), 429 ); }
+			set_transient( $key, $n + 1, 10 * MINUTE_IN_SECONDS );
+
+			// 3) Kräv ALLA fält klienten kräver (klientvalidering går att kringgå).
+			if ( empty( $d['namn'] ) || empty( $d['epost'] ) || empty( $d['telefon'] )
+				|| empty( $d['postnummer'] ) || empty( $d['samtycke'] ) ) {
+				return new WP_REST_Response( array( 'ok' => false ), 400 );
+			}
+			$namn  = sanitize_text_field( $d['namn'] );
+			$epost = sanitize_email( $d['epost'] );
+			if ( ! is_email( $epost ) ) { return new WP_REST_Response( array( 'ok' => false ), 400 ); }
+
+			$g = function ( $k ) use ( $d ) { return isset( $d[ $k ] ) ? sanitize_text_field( $d[ $k ] ) : ''; };
+			$body = "Ny LED-offertförfrågan\n\n"
+				. "Namn: $namn\nE-post: $epost\n"
+				. 'Telefon: '  . $g( 'telefon' )    . "\n"
+				. 'Postnr: '   . $g( 'postnummer' ) . "\n\n"
+				. 'Segment: '  . $g( 'segment' )    . "\n"
+				. 'Antal: '    . intval( isset( $d['antal'] ) ? $d['antal'] : 0 ) . ' × ' . $g( 'typ_id' ) . "\n"
+				. 'Brinntid: ' . floatval( isset( $d['timmar_dag'] ) ? $d['timmar_dag'] : 0 ) . ' h/dygn, område ' . $g( 'elprisomrade' ) . "\n"
+				. 'Årlig besparing: '    . intval( isset( $d['arlig_besparing'] ) ? $d['arlig_besparing'] : 0 )     . " kr/år\n"
+				. 'Uppskattad kostnad: ' . intval( isset( $d['uppskattad_kostnad'] ) ? $d['uppskattad_kostnad'] : 0 ) . " kr\n"
+				. 'Samtycke: '  . $g( 'samtycke_tid' );
+
+			// 4) Header-injection-skydd: strippa CR/LF ur allt som hamnar i en mejl-header.
+			$reply = str_replace( array( "\r", "\n" ), '', $epost );
+			wp_mail( 'offert@ampy.se', 'LED-offert – ' . $namn, $body, array( 'Reply-To: ' . $reply ) );
+			// TODO: pusha till CRM här om ni vill. Lägg ALDRIG rå $d[...] i mejl-headers.
+			return new WP_REST_Response( array( 'ok' => true ), 200 );
+		},
+	) );
+} );
